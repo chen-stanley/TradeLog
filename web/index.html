@@ -58,23 +58,64 @@
         input[type="checkbox"]:hover { transform: scale(1.1); }
         .sync-h { height: 42px; display: flex; align-items: center; }
         .table-num { font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace; font-variant-numeric: tabular-nums; }
+
+        /* 導覽列 */
+        .nav-item { position: relative; }
+        .nav-item::after {
+            content: attr(data-tooltip);
+            position: absolute; left: calc(100% + 12px); top: 50%; transform: translateY(-50%);
+            background: #2B3139; color: white; font-size: 12px; font-weight: 600;
+            padding: 4px 10px; border-radius: 8px; white-space: nowrap;
+            opacity: 0; pointer-events: none; transition: opacity 0.2s;
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+        .nav-item:hover::after { opacity: 1; }
+        .nav-item.active { background: rgba(38, 192, 219, 0.15); }
+        .nav-item.active iconify-icon { color: #26C0DB; }
     </style>
 </head>
 <body class="bg-bgLight dark:bg-bgDark text-gray-800 dark:text-white font-sans h-screen flex overflow-hidden">
 
-    <!-- ==================== 左側：輸入區 ==================== -->
-    <div id="sidebar" class="w-[320px] glass m-4 rounded-3xl p-6 flex flex-col shadow-2xl z-20 overflow-y-auto custom-scrollbar border-r border-gray-200 dark:border-gray-700">
-        <div class="flex items-center justify-between mb-6">
-            <h1 class="text-2xl font-extrabold flex items-center gap-2 tracking-wide select-none">
-                <div class="bg-primary/10 dark:bg-primary/20 p-2 rounded-xl flex items-center justify-center shadow-inner border border-primary/20">
-                    <iconify-icon icon="solar:notebook-bookmark-bold-duotone" class="text-primary text-3xl"></iconify-icon>
-                </div>
-                <span class="text-transparent bg-clip-text bg-gradient-to-r from-primary to-crypto">TradeLog</span>
-            </h1>
-            <button onclick="toggleTheme()" class="p-2 rounded-full hover:bg-gray-200 dark:hover:bg-inputBgDark transition-colors flex items-center justify-center">
-                <iconify-icon id="theme-icon" icon="solar:moon-stars-bold-duotone" class="text-2xl text-primary"></iconify-icon>
-            </button>
+    <!-- ==================== 最左側：64px 導覽列 ==================== -->
+    <div class="w-16 glass m-4 mr-2 rounded-3xl flex flex-col items-center py-5 gap-2 shadow-2xl z-30 flex-shrink-0">
+
+        <!-- Logo -->
+        <div class="bg-primary/10 dark:bg-primary/20 p-2 rounded-xl flex items-center justify-center shadow-inner border border-primary/20 mb-2">
+            <iconify-icon icon="solar:notebook-bookmark-bold-duotone" class="text-primary text-2xl"></iconify-icon>
         </div>
+
+        <!-- 導覽項目 -->
+        <button onclick="navigateTo('dashboard')" id="nav-dashboard"
+            class="nav-item active w-11 h-11 rounded-xl flex items-center justify-center transition-all"
+            data-tooltip="Dashboard">
+            <iconify-icon icon="solar:home-bold-duotone" class="text-2xl text-primary"></iconify-icon>
+        </button>
+
+        <button onclick="navigateTo('holdings')" id="nav-holdings"
+            class="nav-item w-11 h-11 rounded-xl flex items-center justify-center transition-all text-gray-400 dark:text-gray-500 hover:bg-inputBgLight dark:hover:bg-inputBgDark hover:text-gray-700 dark:hover:text-white"
+            data-tooltip="持倉總覽">
+            <iconify-icon icon="solar:case-bold-duotone" class="text-2xl"></iconify-icon>
+        </button>
+
+        <button onclick="navigateTo('charts')" id="nav-charts"
+            class="nav-item w-11 h-11 rounded-xl flex items-center justify-center transition-all text-gray-400 dark:text-gray-500 hover:bg-inputBgLight dark:hover:bg-inputBgDark hover:text-gray-700 dark:hover:text-white"
+            data-tooltip="圖表分析">
+            <iconify-icon icon="solar:chart-bold-duotone" class="text-2xl"></iconify-icon>
+        </button>
+
+        <!-- 彈性空間 -->
+        <div class="flex-1"></div>
+
+        <!-- 深色/淺色切換 -->
+        <button onclick="toggleTheme()"
+            class="w-11 h-11 rounded-full hover:bg-gray-200 dark:hover:bg-inputBgDark transition-colors flex items-center justify-center"
+            data-tooltip="切換主題">
+            <iconify-icon id="theme-icon" icon="solar:moon-stars-bold-duotone" class="text-2xl text-primary"></iconify-icon>
+        </button>
+    </div>
+
+    <!-- ==================== 左側：輸入區 ==================== -->
+    <div id="sidebar" class="w-[320px] glass m-4 ml-0 rounded-3xl p-6 flex flex-col shadow-2xl z-20 overflow-y-auto custom-scrollbar flex-shrink-0">
 
         <!-- 市場切換 -->
         <div class="flex bg-inputBgLight dark:bg-inputBgDark rounded-xl p-1 mb-5 transition-colors shadow-inner">
@@ -102,7 +143,7 @@
     </div>
 
     <!-- ==================== 右側：查看區 ==================== -->
-    <div class="flex-1 p-4 flex flex-col overflow-hidden relative z-10">
+    <div class="flex-1 p-4 pl-2 flex flex-col overflow-hidden relative z-10">
 
         <!-- 統計卡 -->
         <div class="grid grid-cols-3 gap-6 mb-6" id="stats-cards">
@@ -141,14 +182,12 @@
         <!-- 表格區 -->
         <div class="flex-1 glass rounded-3xl flex flex-col overflow-hidden shadow-xl">
             <div class="flex justify-between items-center border-b border-gray-200 dark:border-gray-700 bg-gray-50/50 dark:bg-cardDark/50 p-3 px-5 transition-colors">
-                <!-- 檢視切換 -->
                 <div class="flex bg-white dark:bg-bgDark rounded-xl p-1 shadow-sm border border-gray-200 dark:border-gray-600">
                     <button onclick="setViewMarket('台股')" id="btn-view-tw" class="px-5 py-2 rounded-lg text-sm font-bold bg-primary text-white dark:text-bgDark transition-all shadow-sm">檢視台股</button>
                     <button onclick="setViewMarket('美股')" id="btn-view-us" class="px-5 py-2 rounded-lg text-sm font-bold text-gray-500 hover:text-gray-800 dark:text-gray-400 dark:hover:text-white transition-all">檢視美股</button>
                     <button onclick="setViewMarket('Crypto')" id="btn-view-crypto" class="px-5 py-2 rounded-lg text-sm font-bold text-gray-500 hover:text-gray-800 dark:text-gray-400 dark:hover:text-white transition-all">檢視加密貨幣</button>
                 </div>
                 <div class="flex gap-4 items-center">
-                    <!-- 買入/賣出 Tab -->
                     <div class="flex gap-1">
                         <button onclick="setTableTab('買入')" id="tab-buy" class="px-5 py-2 rounded-xl bg-inputBgLight dark:bg-inputBgDark text-primary font-bold transition flex items-center gap-1.5 shadow-sm border border-gray-200 dark:border-gray-600">
                             <iconify-icon icon="solar:cart-large-minimalistic-bold-duotone"></iconify-icon>買入紀錄
@@ -157,7 +196,6 @@
                             <iconify-icon icon="solar:tag-price-bold-duotone"></iconify-icon>賣出紀錄
                         </button>
                     </div>
-                    <!-- 批次刪除 -->
                     <button onclick="deleteSelected()" id="btn-batch-delete" class="hidden px-4 py-2 bg-danger/10 hover:bg-danger text-danger hover:text-white rounded-xl font-bold transition flex items-center gap-2 border border-danger/20">
                         <iconify-icon icon="solar:trash-bin-trash-bold"></iconify-icon> 刪除選取 (<span id="selected-count">0</span>)
                     </button>
@@ -173,14 +211,12 @@
         </div>
     </div>
 
-    <!-- ==================== 載入 JS 檔案 ==================== -->
+    <!-- ==================== 載入 JS ==================== -->
     <script src="/js/api.js"></script>
     <script src="/js/ui.js"></script>
     <script src="/js/dashboard.js"></script>
     <script>
-        // 啟動！
         window.onload = () => initDashboard();
     </script>
-
 </body>
 </html>
