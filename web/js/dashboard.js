@@ -439,26 +439,14 @@ function renderTable() {
 // ==================== 導覽 ====================
 
 function navigateTo(page) {
-    // 更新所有頁面顯示狀態
-    document.getElementById('page-dashboard').classList.toggle('hidden', page !== 'dashboard');
-    document.getElementById('page-holdings').classList.toggle('hidden', page !== 'holdings');
-
-    // 更新導覽列 active 狀態
     ['dashboard', 'holdings', 'charts'].forEach(p => {
+        document.getElementById(`page-${p}`).classList.toggle('hidden', p !== page);
         const btn = document.getElementById(`nav-${p}`);
         if (!btn) return;
-        if (p === page) {
-            btn.classList.add('active');
-        } else {
-            btn.classList.remove('active');
-            btn.querySelector('iconify-icon').style.color = '';
-        }
+        if (p === page) btn.classList.add('active');
+        else { btn.classList.remove('active'); btn.querySelector('iconify-icon').style.color = ''; }
     });
 
-    // 各頁面初始化
     if (page === 'holdings') initHoldings();
-    if (page === 'charts') {
-        alert('「圖表分析」即將推出！');
-        navigateTo('dashboard');
-    }
+    if (page === 'charts')   initCharts();
 }

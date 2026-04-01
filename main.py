@@ -111,6 +111,110 @@ def calculate_stock_profit(data, exclude_id=None):
 
 # ==================== Eel 暴露給前端的 API ====================
 @eel.expose
+def get_chart_data():
+    """取得圖表分析所需的所有資料"""
+    try:
+        conn = get_conn()
+        c = conn.cursor()
+        c.execute("SELECT * FROM records ORDER BY date ASC, id ASC")
+        stock_records = [dict(row) for row in c.fetchall()]
+        c.execute("SELECT * FROM crypto_records ORDER BY dt ASC, id ASC")
+        crypto_records = [dict(row) for row in c.fetchall()]
+        conn.close()
+
+        # ── 1. 每月盈虧（台股+美股+Crypto 分開）──
+        monthly = {}
+        for r in stock_records:
+            if r['action'] != '賣出': continue
+            ym = r['date'][:6]  # YYYYMM
+            if ym not in monthly:
+                monthly[ym] = {'twd': 0.0, 'usd': 0.0, 'crypto': 0.0}
+            if r['market'] == '台股':
+                monthly[ym]['twd'] += float(r.get('profit') or 0)
+            else:
+                monthly[ym]['usd'] += float(r.get('profit') or 0)
+
+        for r in crypto_records:
+            if r['action'] != '賣出': continue
+            ym = r['dt'][:7].replace('-', '')  # YYYYMM
+            if ym not in monthly:
+                monthly[ym] = {'twd': 0.0, 'usd': 0.0, 'crypto': 0.0}
+            monthly[ym]['crypto'] += float(r.get('profit') or 0)
+
+        monthly_sorted = dict(sorted(monthly.items()))
+
+        # ── 2. 各標的盈虧排行（只算賣出的已實現盈虧）──
+        symbol_profit = {}
+        for r in stock_records:
+            if r['action'] != '賣出': continue
+            key = f"{r['symbol']} ({r['market']})"
+            symbol_profit[key] = symbol_profit.get(key, 0.0) + float(r.get('profit') or 0)
+
+        for r in crypto_records:
+            if r['action'] != '賣出': continue
+            key = f"{r['symbol']} (Crypto)"
+            symbol_profit[key] = symbol_profit.get(key, 0.0) + float(r.get('profit') or 0)
+
+        symbol_sorted = dict(sorted(symbol_profit.items(), key=lambda x: x[1], reverse=True))
+
+        # ── 3. 累積盈虧走勢 ──
+        cumulative = []
+        total = 0.0
+        all_sells = []
+
+        for r in stock_records:
+            if r['action'] != '賣出': continue
+            all_sells.append({'date': r['date'], 'profit': float(r.get('profit') or 0)})
+
+        for r in crypto_records:
+            if r['action'] != '賣出': continue
+            all_sells.append({'date': r['dt'][:10].replace('-', ''), 'profit': float(r.get('profit') or 0)})
+
+        all_sells.sort(key=lambda x: x['date'])
+        for s in all_sells:
+            total += s['profit']
+            cumulative.append({'date': s['date'], 'total': round(total, 2)})
+
+        # ── 4. 勝率統計 ──
+        wins   = sum(1 for s in all_sells if s['profit'] > 0)
+        losses = sum(1 for s in all_sells if s['profit'] < 0)
+        total_trades = len(all_sells)
+        win_rate = round((wins / total_trades * 100), 1) if total_trades > 0 else 0
+
+        # ── 5. 最佳/最差標的 ──
+        best  = max(symbol_profit.items(), key=lambda x: x[1]) if symbol_profit else ('--', 0)
+        worst = min(symbol_profit.items(), key=lambda x: x[1]) if symbol_profit else ('--', 0)
+
+        # ── 6. 市場佔比（已實現盈虧絕對值佔比）──
+        twd_total    = abs(sum(float(r.get('profit') or 0) for r in stock_records if r['action'] == '賣出' and r['market'] == '台股'))
+        usd_total    = abs(sum(float(r.get('profit') or 0) for r in stock_records if r['action'] == '賣出' and r['market'] == '美股'))
+        crypto_total = abs(sum(float(r.get('profit') or 0) for r in crypto_records if r['action'] == '賣出'))
+
+        return {
+            "status": "success",
+            "data": {
+                "monthly":       monthly_sorted,
+                "symbol_profit": symbol_sorted,
+                "cumulative":    cumulative,
+                "win_rate": {
+                    "wins":         wins,
+                    "losses":       losses,
+                    "total":        total_trades,
+                    "rate":         win_rate
+                },
+                "best":  {"symbol": best[0],  "profit": round(best[1], 2)},
+                "worst": {"symbol": worst[0], "profit": round(worst[1], 2)},
+                "market_share": {
+                    "twd":    round(twd_total, 2),
+                    "usd":    round(usd_total, 2),
+                    "crypto": round(crypto_total, 2)
+                }
+            }
+        }
+    except Exception as e:
+        return {"status": "error", "message": str(e)}
+
+@eel.expose
 def get_holdings():
     """計算目前所有持倉的均價與成本"""
     try:

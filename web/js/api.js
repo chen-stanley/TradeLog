@@ -19,4 +19,6 @@ const API = {
     deleteRecords: (mode, ids) => eel.delete_records(mode, ids)(),
 
     getHoldings: () => eel.get_holdings()(),
+
+    getChartData: () => eel.get_chart_data()(),
 };

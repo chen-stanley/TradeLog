@@ -7,6 +7,7 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://code.iconify.design/iconify-icon/1.0.7/iconify-icon.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
     <link rel="stylesheet" id="flatpickr-theme" href="https://npmcdn.com/flatpickr/dist/themes/dark.css">
     <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
@@ -72,6 +73,13 @@
         .nav-item:hover::after { opacity: 1; }
         .nav-item.active { background: rgba(38, 192, 219, 0.15); }
         .nav-item.active iconify-icon { color: #26C0DB; }
+
+        /* 圖表空狀態 */
+        .chart-empty {
+            position: absolute; inset: 0; display: flex; flex-direction: column;
+            align-items: center; justify-content: center; gap: 8px;
+            color: #6B7280; font-size: 13px; font-weight: 600;
+        }
     </style>
 </head>
 <body class="bg-bgLight dark:bg-bgDark text-gray-800 dark:text-white font-sans h-screen flex overflow-hidden">
@@ -136,9 +144,8 @@
     <!-- ==================== 右側：主內容區 ==================== -->
     <div class="flex-1 p-4 pl-2 flex flex-col overflow-hidden relative z-10">
 
-        <!-- Dashboard 頁 -->
-        <div id="page-dashboard">
-            <!-- 統計卡 -->
+        <!-- ── Dashboard 頁 ── -->
+        <div id="page-dashboard" class="flex flex-col h-full">
             <div class="grid grid-cols-3 gap-6 mb-6" id="stats-cards">
                 <div class="glass rounded-3xl p-6 shadow-xl relative overflow-hidden group">
                     <div class="absolute -right-6 -top-6 w-32 h-32 bg-blue-500 rounded-full opacity-10 blur-3xl group-hover:opacity-20 transition"></div>
@@ -172,8 +179,7 @@
                 </div>
             </div>
 
-            <!-- 表格區 -->
-            <div class="flex-1 glass rounded-3xl flex flex-col overflow-hidden shadow-xl" style="height: calc(100vh - 220px);">
+            <div class="flex-1 glass rounded-3xl flex flex-col overflow-hidden shadow-xl">
                 <div class="flex justify-between items-center border-b border-gray-200 dark:border-gray-700 bg-gray-50/50 dark:bg-cardDark/50 p-3 px-5 transition-colors">
                     <div class="flex bg-white dark:bg-bgDark rounded-xl p-1 shadow-sm border border-gray-200 dark:border-gray-600">
                         <button onclick="setViewMarket('台股')" id="btn-view-tw" class="px-5 py-2 rounded-lg text-sm font-bold bg-primary text-white dark:text-bgDark transition-all shadow-sm">檢視台股</button>
@@ -203,10 +209,8 @@
             </div>
         </div>
 
-        <!-- 持倉總覽頁 -->
-        <div id="page-holdings" class="hidden h-full flex flex-col gap-6" >
-
-            <!-- 頁面標題 -->
+        <!-- ── 持倉總覽頁 ── -->
+        <div id="page-holdings" class="hidden h-full flex flex-col gap-6">
             <div class="flex items-center gap-3">
                 <div class="bg-primary/10 dark:bg-primary/20 p-2 rounded-xl border border-primary/20">
                     <iconify-icon icon="solar:case-bold-duotone" class="text-primary text-2xl"></iconify-icon>
@@ -219,36 +223,32 @@
                     <iconify-icon icon="solar:refresh-bold-duotone"></iconify-icon> 重新整理
                 </button>
             </div>
-
-            <!-- 摘要統計卡 -->
             <div class="grid grid-cols-4 gap-4" id="holdings-container">
-                <div class="glass rounded-2xl p-5 shadow-lg relative overflow-hidden group">
+                <div class="glass rounded-2xl p-5 shadow-lg relative overflow-hidden">
                     <div class="absolute -right-4 -top-4 w-24 h-24 bg-blue-500 rounded-full opacity-10 blur-2xl"></div>
                     <p class="text-xs text-gray-500 dark:text-gray-400 font-bold mb-2">台股持倉數</p>
                     <div class="text-3xl font-extrabold text-primary" id="h-tw-count">0</div>
                     <p class="text-xs text-gray-400 mt-1">支股票</p>
                 </div>
-                <div class="glass rounded-2xl p-5 shadow-lg relative overflow-hidden group">
+                <div class="glass rounded-2xl p-5 shadow-lg relative overflow-hidden">
                     <div class="absolute -right-4 -top-4 w-24 h-24 bg-purple-500 rounded-full opacity-10 blur-2xl"></div>
                     <p class="text-xs text-gray-500 dark:text-gray-400 font-bold mb-2">美股持倉數</p>
                     <div class="text-3xl font-extrabold text-purple-400" id="h-us-count">0</div>
                     <p class="text-xs text-gray-400 mt-1">支股票</p>
                 </div>
-                <div class="glass rounded-2xl p-5 shadow-lg relative overflow-hidden group">
+                <div class="glass rounded-2xl p-5 shadow-lg relative overflow-hidden">
                     <div class="absolute -right-4 -top-4 w-24 h-24 bg-blue-500 rounded-full opacity-10 blur-2xl"></div>
                     <p class="text-xs text-gray-500 dark:text-gray-400 font-bold mb-2">台股總成本</p>
                     <div class="text-2xl font-extrabold text-primary table-num" id="h-tw-cost">$0</div>
                     <p class="text-xs text-gray-400 mt-1">TWD</p>
                 </div>
-                <div class="glass rounded-2xl p-5 shadow-lg relative overflow-hidden group">
+                <div class="glass rounded-2xl p-5 shadow-lg relative overflow-hidden">
                     <div class="absolute -right-4 -top-4 w-24 h-24 bg-purple-500 rounded-full opacity-10 blur-2xl"></div>
                     <p class="text-xs text-gray-500 dark:text-gray-400 font-bold mb-2">美股總成本</p>
                     <div class="text-2xl font-extrabold text-purple-400 table-num" id="h-us-cost">$0.00</div>
                     <p class="text-xs text-gray-400 mt-1">USD</p>
                 </div>
             </div>
-
-            <!-- 持倉表格 -->
             <div class="flex-1 glass rounded-3xl flex flex-col overflow-hidden shadow-xl">
                 <div class="flex-1 overflow-auto custom-scrollbar">
                     <table class="w-full text-center border-collapse table-auto">
@@ -259,6 +259,138 @@
             </div>
         </div>
 
+        <!-- ── 圖表分析頁 ── -->
+        <div id="page-charts" class="hidden h-full flex flex-col gap-4 overflow-y-auto custom-scrollbar pr-1">
+
+            <!-- 頁面標題 -->
+            <div class="flex items-center gap-3 flex-shrink-0">
+                <div class="bg-primary/10 dark:bg-primary/20 p-2 rounded-xl border border-primary/20">
+                    <iconify-icon icon="solar:chart-bold-duotone" class="text-primary text-2xl"></iconify-icon>
+                </div>
+                <div>
+                    <h1 class="text-xl font-extrabold">圖表分析</h1>
+                    <p class="text-xs text-gray-500 dark:text-gray-400">已實現盈虧統計 · 視覺化分析</p>
+                </div>
+                <button onclick="refreshCharts()" class="ml-auto px-4 py-2 bg-primary/10 hover:bg-primary/20 text-primary rounded-xl font-bold transition flex items-center gap-2 text-sm border border-primary/20">
+                    <iconify-icon icon="solar:refresh-bold-duotone"></iconify-icon> 重新整理
+                </button>
+            </div>
+
+            <!-- 統計卡：勝率 + 最佳 + 最差 -->
+            <div class="grid grid-cols-3 gap-4 flex-shrink-0">
+
+                <!-- 勝率卡 -->
+                <div class="glass rounded-2xl p-5 shadow-lg">
+                    <p class="text-xs text-gray-500 dark:text-gray-400 font-bold mb-3">交易勝率</p>
+                    <div class="flex items-center gap-4">
+                        <div class="relative w-20 h-20 flex-shrink-0">
+                            <canvas id="winRateChart"></canvas>
+                            <div class="absolute inset-0 flex items-center justify-center">
+                                <span class="text-lg font-extrabold text-success" id="c-win-rate">0%</span>
+                            </div>
+                        </div>
+                        <div class="flex flex-col gap-2">
+                            <div class="flex items-center gap-2">
+                                <span class="w-2 h-2 rounded-full bg-success flex-shrink-0"></span>
+                                <span class="text-xs text-gray-400">獲利</span>
+                                <span class="text-sm font-bold text-success ml-auto table-num" id="c-wins">0</span>
+                            </div>
+                            <div class="flex items-center gap-2">
+                                <span class="w-2 h-2 rounded-full bg-danger flex-shrink-0"></span>
+                                <span class="text-xs text-gray-400">虧損</span>
+                                <span class="text-sm font-bold text-danger ml-auto table-num" id="c-losses">0</span>
+                            </div>
+                            <div class="flex items-center gap-2">
+                                <span class="w-2 h-2 rounded-full bg-gray-400 flex-shrink-0"></span>
+                                <span class="text-xs text-gray-400">總次數</span>
+                                <span class="text-sm font-bold ml-auto table-num" id="c-total">0</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 最佳標的卡 -->
+                <div class="glass rounded-2xl p-5 shadow-lg relative overflow-hidden">
+                    <div class="absolute -right-4 -top-4 w-24 h-24 bg-success rounded-full opacity-10 blur-2xl"></div>
+                    <p class="text-xs text-gray-500 dark:text-gray-400 font-bold mb-2 flex items-center gap-1">
+                        <iconify-icon icon="solar:crown-bold-duotone" class="text-yellow-400"></iconify-icon>最佳標的
+                    </p>
+                    <div class="text-xl font-extrabold text-gray-800 dark:text-white mt-1" id="c-best-symbol">--</div>
+                    <div class="text-2xl font-extrabold text-success table-num mt-1" id="c-best-profit">--</div>
+                </div>
+
+                <!-- 最差標的卡 -->
+                <div class="glass rounded-2xl p-5 shadow-lg relative overflow-hidden">
+                    <div class="absolute -right-4 -top-4 w-24 h-24 bg-danger rounded-full opacity-10 blur-2xl"></div>
+                    <p class="text-xs text-gray-500 dark:text-gray-400 font-bold mb-2 flex items-center gap-1">
+                        <iconify-icon icon="solar:sad-circle-bold-duotone" class="text-danger"></iconify-icon>最差標的
+                    </p>
+                    <div class="text-xl font-extrabold text-gray-800 dark:text-white mt-1" id="c-worst-symbol">--</div>
+                    <div class="text-2xl font-extrabold text-danger table-num mt-1" id="c-worst-profit">--</div>
+                </div>
+            </div>
+
+            <!-- 圓餅圖 + 排行榜 -->
+            <div class="grid grid-cols-5 gap-4 flex-shrink-0">
+
+                <!-- 圓餅圖 -->
+                <div class="col-span-2 glass rounded-2xl p-5 shadow-lg">
+                    <p class="text-sm font-extrabold mb-4 flex items-center gap-2">
+                        <iconify-icon icon="solar:pie-chart-bold-duotone" class="text-primary"></iconify-icon>市場盈虧佔比
+                    </p>
+                    <div class="relative" style="height: 220px;">
+                        <canvas id="pieChart"></canvas>
+                        <div id="pie-empty" class="chart-empty hidden">
+                            <iconify-icon icon="solar:pie-chart-bold-duotone" class="text-4xl opacity-30"></iconify-icon>
+                            <span>尚無已實現盈虧</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 標的排行 -->
+                <div class="col-span-3 glass rounded-2xl p-5 shadow-lg">
+                    <p class="text-sm font-extrabold mb-4 flex items-center gap-2">
+                        <iconify-icon icon="solar:ranking-bold-duotone" class="text-primary"></iconify-icon>各標的盈虧排行 (Top 10)
+                    </p>
+                    <div class="relative" style="height: 220px;">
+                        <canvas id="rankChart"></canvas>
+                        <div id="rank-empty" class="chart-empty hidden">
+                            <iconify-icon icon="solar:ranking-bold-duotone" class="text-4xl opacity-30"></iconify-icon>
+                            <span>尚無已實現盈虧</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 每月盈虧長條圖 -->
+            <div class="glass rounded-2xl p-5 shadow-lg flex-shrink-0">
+                <p class="text-sm font-extrabold mb-4 flex items-center gap-2">
+                    <iconify-icon icon="solar:graph-new-up-bold-duotone" class="text-primary"></iconify-icon>每月盈虧
+                </p>
+                <div class="relative" style="height: 200px;">
+                    <canvas id="barChart"></canvas>
+                    <div id="bar-empty" class="chart-empty hidden">
+                        <iconify-icon icon="solar:graph-new-up-bold-duotone" class="text-4xl opacity-30"></iconify-icon>
+                        <span>尚無已實現盈虧</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 累積盈虧折線圖 -->
+            <div class="glass rounded-2xl p-5 shadow-lg flex-shrink-0">
+                <p class="text-sm font-extrabold mb-4 flex items-center gap-2">
+                    <iconify-icon icon="solar:chart-2-bold-duotone" class="text-primary"></iconify-icon>累積盈虧走勢
+                </p>
+                <div class="relative" style="height: 200px;">
+                    <canvas id="lineChart"></canvas>
+                    <div id="line-empty" class="chart-empty hidden">
+                        <iconify-icon icon="solar:chart-2-bold-duotone" class="text-4xl opacity-30"></iconify-icon>
+                        <span>尚無已實現盈虧</span>
+                    </div>
+                </div>
+            </div>
+
+        </div>
     </div>
 
     <!-- ==================== 載入 JS ==================== -->
@@ -266,6 +398,7 @@
     <script src="/js/ui.js"></script>
     <script src="/js/dashboard.js"></script>
     <script src="/js/holdings.js"></script>
+    <script src="/js/charts.js"></script>
     <script>
         window.onload = () => initDashboard();
     </script>
