@@ -22,6 +22,7 @@ async function initDashboard() {
     });
 
     renderForm();
+    initSearchPickers();
     await refreshData();
 }
 
@@ -359,8 +360,31 @@ function renderTable() {
     body.innerHTML = '';
 
     let displayData = allRecords.filter(r => r.action === tableTab);
-    if (viewMarket === '台股' || viewMarket === '美股')
-        displayData = displayData.filter(r => r.market === viewMarket);
+if (viewMarket === '台股' || viewMarket === '美股')
+    displayData = displayData.filter(r => r.market === viewMarket);
+
+// 搜尋篩選
+const searchVal = (document.getElementById('search-input')?.value || '').toLowerCase().trim();
+if (searchVal) {
+    displayData = displayData.filter(r =>
+        (r.symbol || '').toLowerCase().includes(searchVal) ||
+        (r.name   || '').toLowerCase().includes(searchVal) ||
+        (r.remark || '').toLowerCase().includes(searchVal)
+    );
+    document.getElementById('btn-clear-search').classList.toggle('hidden', !searchVal);
+}
+
+// 日期範圍篩選
+const dateStart = document.getElementById('filter-date-start')?.value || '';
+const dateEnd   = document.getElementById('filter-date-end')?.value   || '';
+if (dateStart) {
+    displayData = displayData.filter(r => (r.date || r.dt || '') >= dateStart);
+    document.getElementById('btn-clear-date').classList.remove('hidden');
+}
+if (dateEnd) {
+    displayData = displayData.filter(r => (r.date || r.dt || '') <= dateEnd);
+    document.getElementById('btn-clear-date').classList.remove('hidden');
+}
 
     displayData.sort((a, b) => {
         let valA = a[sortCol] || '';
@@ -478,4 +502,29 @@ async function exportCsv() {
     } else {
         alert('匯出失敗：' + res.message);
     }
+}
+// ==================== 搜尋/篩選 ====================
+
+let fpSearch = [];
+
+function initSearchPickers() {
+    fpSearch.forEach(fp => fp.destroy());
+    fpSearch = [];
+
+    const config = { dateFormat: 'Ymd', allowInput: true, onChange: () => renderTable() };
+    const s = flatpickr('#filter-date-start', config);
+    const e = flatpickr('#filter-date-end', config);
+    fpSearch = [s, e];
+}
+
+function clearSearch() {
+    document.getElementById('search-input').value = '';
+    document.getElementById('btn-clear-search').classList.add('hidden');
+    renderTable();
+}
+
+function clearDateFilter() {
+    fpSearch.forEach(fp => fp.clear());
+    document.getElementById('btn-clear-date').classList.add('hidden');
+    renderTable();
 }

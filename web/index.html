@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="zh-TW" class="dark">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -30,63 +31,177 @@
     </script>
     <style>
         input[type="number"]::-webkit-inner-spin-button,
-        input[type="number"]::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
-        input[type="number"] { -moz-appearance: textfield; }
-        body { transition: background-color 0.5s ease, color 0.5s ease; }
-        .glass { transition: background-color 0.5s ease, border-color 0.5s ease, box-shadow 0.5s ease; }
-        .dark .glass { background: rgba(43, 49, 57, 0.85); backdrop-filter: blur(12px); border: 1px solid rgba(255, 255, 255, 0.05); }
-        .glass { background: rgba(255, 255, 255, 0.85); backdrop-filter: blur(12px); border: 1px solid rgba(0, 0, 0, 0.05); }
-        .custom-scrollbar::-webkit-scrollbar { width: 8px; height: 8px; }
-        .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
-        .custom-scrollbar::-webkit-scrollbar-thumb { background: #4b5563; border-radius: 4px; }
-        .dark .custom-scrollbar::-webkit-scrollbar-thumb { background: #6b7280; }
-        th.sortable { cursor: pointer; transition: background 0.2s; user-select: none; }
-        th.sortable:hover { background: rgba(128,128,128,0.1); }
-        input[type="checkbox"] {
-            appearance: none; -webkit-appearance: none; background-color: #E5E7EB; margin: 0;
-            width: 1.15rem; height: 1.15rem; border-radius: 0.25rem; display: grid; place-content: center;
-            cursor: pointer; transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1); border: 1px solid transparent;
+        input[type="number"]::-webkit-outer-spin-button {
+            -webkit-appearance: none;
+            margin: 0;
         }
-        .dark input[type="checkbox"] { background-color: rgba(255, 255, 255, 0.08); border: 1px solid rgba(255, 255, 255, 0.15); }
+
+        input[type="number"] {
+            -moz-appearance: textfield;
+        }
+
+        body {
+            transition: background-color 0.5s ease, color 0.5s ease;
+        }
+
+        .glass {
+            transition: background-color 0.5s ease, border-color 0.5s ease, box-shadow 0.5s ease;
+        }
+
+        .dark .glass {
+            background: rgba(43, 49, 57, 0.85);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .glass {
+            background: rgba(255, 255, 255, 0.85);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(0, 0, 0, 0.05);
+        }
+
+        .custom-scrollbar::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+
+        .custom-scrollbar::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: #4b5563;
+            border-radius: 4px;
+        }
+
+        .dark .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: #6b7280;
+        }
+
+        th.sortable {
+            cursor: pointer;
+            transition: background 0.2s;
+            user-select: none;
+        }
+
+        th.sortable:hover {
+            background: rgba(128, 128, 128, 0.1);
+        }
+
+        input[type="checkbox"] {
+            appearance: none;
+            -webkit-appearance: none;
+            background-color: #E5E7EB;
+            margin: 0;
+            width: 1.15rem;
+            height: 1.15rem;
+            border-radius: 0.25rem;
+            display: grid;
+            place-content: center;
+            cursor: pointer;
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+            border: 1px solid transparent;
+        }
+
+        .dark input[type="checkbox"] {
+            background-color: rgba(255, 255, 255, 0.08);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+        }
+
         input[type="checkbox"]::before {
-            content: ""; width: 0.65rem; height: 0.65rem; transform: scale(0);
-            transition: 120ms transform ease-in-out; box-shadow: inset 1em 1em white;
-            background-color: white; transform-origin: center;
+            content: "";
+            width: 0.65rem;
+            height: 0.65rem;
+            transform: scale(0);
+            transition: 120ms transform ease-in-out;
+            box-shadow: inset 1em 1em white;
+            background-color: white;
+            transform-origin: center;
             clip-path: polygon(14% 44%, 0 65%, 50% 100%, 100% 16%, 80% 0%, 43% 62%);
         }
-        input[type="checkbox"]:checked { background-color: #FF6B6B; border-color: #FF6B6B; }
-        input[type="checkbox"]:checked::before { transform: scale(1); }
-        input[type="checkbox"]:hover { transform: scale(1.1); }
-        .sync-h { height: 42px; display: flex; align-items: center; }
-        .table-num { font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace; font-variant-numeric: tabular-nums; }
+
+        input[type="checkbox"]:checked {
+            background-color: #FF6B6B;
+            border-color: #FF6B6B;
+        }
+
+        input[type="checkbox"]:checked::before {
+            transform: scale(1);
+        }
+
+        input[type="checkbox"]:hover {
+            transform: scale(1.1);
+        }
+
+        .sync-h {
+            height: 42px;
+            display: flex;
+            align-items: center;
+        }
+
+        .table-num {
+            font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+            font-variant-numeric: tabular-nums;
+        }
 
         /* 導覽列 */
-        .nav-item { position: relative; }
+        .nav-item {
+            position: relative;
+        }
+
         .nav-item::after {
             content: attr(data-tooltip);
-            position: absolute; left: calc(100% + 12px); top: 50%; transform: translateY(-50%);
-            background: #2B3139; color: white; font-size: 12px; font-weight: 600;
-            padding: 4px 10px; border-radius: 8px; white-space: nowrap;
-            opacity: 0; pointer-events: none; transition: opacity 0.2s;
-            border: 1px solid rgba(255,255,255,0.1);
+            position: absolute;
+            left: calc(100% + 12px);
+            top: 50%;
+            transform: translateY(-50%);
+            background: #2B3139;
+            color: white;
+            font-size: 12px;
+            font-weight: 600;
+            padding: 4px 10px;
+            border-radius: 8px;
+            white-space: nowrap;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.2s;
+            border: 1px solid rgba(255, 255, 255, 0.1);
         }
-        .nav-item:hover::after { opacity: 1; }
-        .nav-item.active { background: rgba(38, 192, 219, 0.15); }
-        .nav-item.active iconify-icon { color: #26C0DB; }
+
+        .nav-item:hover::after {
+            opacity: 1;
+        }
+
+        .nav-item.active {
+            background: rgba(38, 192, 219, 0.15);
+        }
+
+        .nav-item.active iconify-icon {
+            color: #26C0DB;
+        }
 
         /* 圖表空狀態 */
         .chart-empty {
-            position: absolute; inset: 0; display: flex; flex-direction: column;
-            align-items: center; justify-content: center; gap: 8px;
-            color: #6B7280; font-size: 13px; font-weight: 600;
+            position: absolute;
+            inset: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            color: #6B7280;
+            font-size: 13px;
+            font-weight: 600;
         }
     </style>
 </head>
+
 <body class="bg-bgLight dark:bg-bgDark text-gray-800 dark:text-white font-sans h-screen flex overflow-hidden">
 
     <!-- ==================== 最左側：64px 導覽列 ==================== -->
     <div class="w-16 glass m-4 mr-2 rounded-3xl flex flex-col items-center py-5 gap-2 shadow-2xl z-30 flex-shrink-0">
-        <div class="bg-primary/10 dark:bg-primary/20 p-2 rounded-xl flex items-center justify-center shadow-inner border border-primary/20 mb-2">
+        <div
+            class="bg-primary/10 dark:bg-primary/20 p-2 rounded-xl flex items-center justify-center shadow-inner border border-primary/20 mb-2">
             <iconify-icon icon="solar:notebook-bookmark-bold-duotone" class="text-primary text-2xl"></iconify-icon>
         </div>
 
@@ -113,30 +228,37 @@
         <button onclick="toggleTheme()"
             class="nav-item w-11 h-11 rounded-full hover:bg-gray-200 dark:hover:bg-inputBgDark transition-colors flex items-center justify-center"
             data-tooltip="切換主題">
-            <iconify-icon id="theme-icon" icon="solar:moon-stars-bold-duotone" class="text-2xl text-primary"></iconify-icon>
+            <iconify-icon id="theme-icon" icon="solar:moon-stars-bold-duotone"
+                class="text-2xl text-primary"></iconify-icon>
         </button>
     </div>
 
     <!-- ==================== 左側：輸入區 ==================== -->
-    <div id="sidebar" class="w-[320px] glass m-4 ml-0 rounded-3xl p-6 flex flex-col shadow-2xl z-20 overflow-y-auto custom-scrollbar flex-shrink-0">
+    <div id="sidebar"
+        class="w-[320px] glass m-4 ml-0 rounded-3xl p-6 flex flex-col shadow-2xl z-20 overflow-y-auto custom-scrollbar flex-shrink-0">
         <div class="flex bg-inputBgLight dark:bg-inputBgDark rounded-xl p-1 mb-5 transition-colors shadow-inner">
-            <button onclick="setInputMarket('台股')" id="btn-in-tw" class="flex-1 py-2 rounded-lg text-sm font-bold bg-primary text-white dark:text-bgDark transition-all shadow-md flex justify-center items-center gap-1">
+            <button onclick="setInputMarket('台股')" id="btn-in-tw"
+                class="flex-1 py-2 rounded-lg text-sm font-bold bg-primary text-white dark:text-bgDark transition-all shadow-md flex justify-center items-center gap-1">
                 <iconify-icon icon="ic:twotone-candlestick-chart" class="text-lg"></iconify-icon>台股
             </button>
-            <button onclick="setInputMarket('美股')" id="btn-in-us" class="flex-1 py-2 rounded-lg text-sm font-bold text-gray-500 dark:text-gray-400 hover:text-gray-800 dark:hover:text-white transition-all flex justify-center items-center gap-1">
+            <button onclick="setInputMarket('美股')" id="btn-in-us"
+                class="flex-1 py-2 rounded-lg text-sm font-bold text-gray-500 dark:text-gray-400 hover:text-gray-800 dark:hover:text-white transition-all flex justify-center items-center gap-1">
                 <iconify-icon icon="solar:global-bold-duotone" class="text-lg"></iconify-icon>美股
             </button>
-            <button onclick="setInputMarket('Crypto')" id="btn-in-crypto" class="flex-1 py-2 rounded-lg text-sm font-bold text-gray-500 dark:text-gray-400 hover:text-gray-800 dark:hover:text-white transition-all flex justify-center items-center gap-1">
+            <button onclick="setInputMarket('Crypto')" id="btn-in-crypto"
+                class="flex-1 py-2 rounded-lg text-sm font-bold text-gray-500 dark:text-gray-400 hover:text-gray-800 dark:hover:text-white transition-all flex justify-center items-center gap-1">
                 <iconify-icon icon="ic:twotone-currency-bitcoin" class="text-lg"></iconify-icon>Crypto
             </button>
         </div>
 
         <div id="form-container" class="space-y-4 flex-1 mt-1"></div>
 
-        <button id="btn-save" onclick="saveRecord()" class="w-full mt-6 bg-primary hover:bg-cyan-400 text-white dark:text-bgDark font-bold py-3.5 rounded-xl transition transform hover:scale-[1.02] active:scale-[0.98] shadow-lg flex justify-center items-center gap-2 text-base">
+        <button id="btn-save" onclick="saveRecord()"
+            class="w-full mt-6 bg-primary hover:bg-cyan-400 text-white dark:text-bgDark font-bold py-3.5 rounded-xl transition transform hover:scale-[1.02] active:scale-[0.98] shadow-lg flex justify-center items-center gap-2 text-base">
             <iconify-icon icon="solar:diskette-bold" class="text-xl"></iconify-icon> 儲存紀錄
         </button>
-        <button id="btn-cancel-edit" onclick="cancelEdit()" class="w-full mt-3 bg-gray-500 hover:bg-gray-400 text-white font-bold py-3.5 rounded-xl transition transform hover:scale-[1.02] active:scale-[0.98] shadow-lg flex justify-center items-center gap-2 text-base hidden">
+        <button id="btn-cancel-edit" onclick="cancelEdit()"
+            class="w-full mt-3 bg-gray-500 hover:bg-gray-400 text-white font-bold py-3.5 rounded-xl transition transform hover:scale-[1.02] active:scale-[0.98] shadow-lg flex justify-center items-center gap-2 text-base hidden">
             <iconify-icon icon="solar:close-circle-bold" class="text-xl"></iconify-icon> 取消編輯
         </button>
     </div>
@@ -148,64 +270,106 @@
         <div id="page-dashboard" class="flex flex-col h-full">
             <div class="grid grid-cols-3 gap-6 mb-6" id="stats-cards">
                 <div class="glass rounded-3xl p-6 shadow-xl relative overflow-hidden group">
-                    <div class="absolute -right-6 -top-6 w-32 h-32 bg-blue-500 rounded-full opacity-10 blur-3xl group-hover:opacity-20 transition"></div>
+                    <div
+                        class="absolute -right-6 -top-6 w-32 h-32 bg-blue-500 rounded-full opacity-10 blur-3xl group-hover:opacity-20 transition">
+                    </div>
                     <div class="flex justify-between items-center gap-4">
                         <div class="flex-1 min-w-0">
                             <h2 class="text-gray-500 dark:text-gray-400 text-sm font-bold">台股總盈虧 (TWD)</h2>
-                            <div class="text-4xl lg:text-5xl font-bold mt-4 text-success table-num stat-value transition-all duration-300" id="stat-twd">$0</div>
+                            <div class="text-4xl lg:text-5xl font-bold mt-4 text-success table-num stat-value transition-all duration-300"
+                                id="stat-twd">$0</div>
                         </div>
-                        <iconify-icon icon="solar:wallet-bold-duotone" class="text-6xl flex-shrink-0 text-blue-500 opacity-80 group-hover:scale-110 transition-transform"></iconify-icon>
+                        <iconify-icon icon="solar:wallet-bold-duotone"
+                            class="text-6xl flex-shrink-0 text-blue-500 opacity-80 group-hover:scale-110 transition-transform"></iconify-icon>
                     </div>
                 </div>
                 <div class="glass rounded-3xl p-6 shadow-xl relative overflow-hidden group">
-                    <div class="absolute -right-6 -top-6 w-32 h-32 bg-purple-500 rounded-full opacity-10 blur-3xl group-hover:opacity-20 transition"></div>
+                    <div
+                        class="absolute -right-6 -top-6 w-32 h-32 bg-purple-500 rounded-full opacity-10 blur-3xl group-hover:opacity-20 transition">
+                    </div>
                     <div class="flex justify-between items-center gap-4">
                         <div class="flex-1 min-w-0">
                             <h2 class="text-gray-500 dark:text-gray-400 text-sm font-bold">美股總盈虧 (USD)</h2>
-                            <div class="text-4xl lg:text-5xl font-bold mt-4 text-success table-num stat-value transition-all duration-300" id="stat-usd">$0.0</div>
+                            <div class="text-4xl lg:text-5xl font-bold mt-4 text-success table-num stat-value transition-all duration-300"
+                                id="stat-usd">$0.0</div>
                         </div>
-                        <iconify-icon icon="solar:dollar-bold-duotone" class="text-6xl flex-shrink-0 text-purple-500 opacity-80 group-hover:scale-110 transition-transform"></iconify-icon>
+                        <iconify-icon icon="solar:dollar-bold-duotone"
+                            class="text-6xl flex-shrink-0 text-purple-500 opacity-80 group-hover:scale-110 transition-transform"></iconify-icon>
                     </div>
                 </div>
                 <div class="glass rounded-3xl p-6 shadow-xl relative overflow-hidden group">
-                    <div class="absolute -right-6 -top-6 w-32 h-32 bg-crypto rounded-full opacity-10 blur-3xl group-hover:opacity-20 transition"></div>
+                    <div
+                        class="absolute -right-6 -top-6 w-32 h-32 bg-crypto rounded-full opacity-10 blur-3xl group-hover:opacity-20 transition">
+                    </div>
                     <div class="flex justify-between items-center gap-4">
                         <div class="flex-1 min-w-0">
                             <h2 class="text-gray-500 dark:text-gray-400 text-sm font-bold">Crypto 總盈虧 (USDT)</h2>
-                            <div class="text-4xl lg:text-5xl font-bold mt-4 text-success table-num stat-value transition-all duration-300" id="stat-crypto">$0.0</div>
+                            <div class="text-4xl lg:text-5xl font-bold mt-4 text-success table-num stat-value transition-all duration-300"
+                                id="stat-crypto">$0.0</div>
                         </div>
-                        <iconify-icon icon="ic:twotone-currency-bitcoin" class="text-6xl flex-shrink-0 text-crypto opacity-80 group-hover:scale-110 transition-transform"></iconify-icon>
+                        <iconify-icon icon="ic:twotone-currency-bitcoin"
+                            class="text-6xl flex-shrink-0 text-crypto opacity-80 group-hover:scale-110 transition-transform"></iconify-icon>
                     </div>
                 </div>
             </div>
 
             <div class="flex-1 glass rounded-3xl flex flex-col overflow-hidden shadow-xl">
-                <div class="flex justify-between items-center border-b border-gray-200 dark:border-gray-700 bg-gray-50/50 dark:bg-cardDark/50 p-3 px-5 transition-colors">
-                    <div class="flex bg-white dark:bg-bgDark rounded-xl p-1 shadow-sm border border-gray-200 dark:border-gray-600">
-                        <button onclick="setViewMarket('台股')" id="btn-view-tw" class="px-5 py-2 rounded-lg text-sm font-bold bg-primary text-white dark:text-bgDark transition-all shadow-sm">檢視台股</button>
-                        <button onclick="setViewMarket('美股')" id="btn-view-us" class="px-5 py-2 rounded-lg text-sm font-bold text-gray-500 hover:text-gray-800 dark:text-gray-400 dark:hover:text-white transition-all">檢視美股</button>
-                        <button onclick="setViewMarket('Crypto')" id="btn-view-crypto" class="px-5 py-2 rounded-lg text-sm font-bold text-gray-500 hover:text-gray-800 dark:text-gray-400 dark:hover:text-white transition-all">檢視加密貨幣</button>
-                    </div>
-                    <div class="flex gap-4 items-center">
-                        <div class="flex gap-1">
-                            <button onclick="setTableTab('買入')" id="tab-buy" class="px-5 py-2 rounded-xl bg-inputBgLight dark:bg-inputBgDark text-primary font-bold transition flex items-center gap-1.5 shadow-sm border border-gray-200 dark:border-gray-600">
-                                <iconify-icon icon="solar:cart-large-minimalistic-bold-duotone"></iconify-icon>買入紀錄
-                            </button>
-                            <button onclick="setTableTab('賣出')" id="tab-sell" class="px-5 py-2 rounded-xl text-gray-500 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-inputBgDark transition flex items-center gap-1.5">
-                                <iconify-icon icon="solar:tag-price-bold-duotone"></iconify-icon>賣出紀錄
-                            </button>
-                        </div>
-                        <button id="btn-export" onclick="exportCsv()" class="px-4 py-2 bg-success/10 hover:bg-success text-success hover:text-white rounded-xl font-bold transition flex items-center gap-2 text-sm border border-success/20">
-                            <iconify-icon icon="solar:export-bold-duotone" class="text-base"></iconify-icon> 匯出 CSV
-                        </button>
-                        <button onclick="deleteSelected()" id="btn-batch-delete" class="hidden px-4 py-2 bg-danger/10 hover:bg-danger text-danger hover:text-white rounded-xl font-bold transition flex items-center gap-2 border border-danger/20">
-                            <iconify-icon icon="solar:trash-bin-trash-bold"></iconify-icon> 刪除選取 (<span id="selected-count">0</span>)
-                        </button>
-                    </div>
-                </div>
+                <div class="flex flex-col border-b border-gray-200 dark:border-gray-700 bg-gray-50/50 dark:bg-cardDark/50 transition-colors">
+    <!-- 第一行：市場切換 + 買入賣出Tab + 匯出 -->
+    <div class="flex justify-between items-center px-5 pt-3 pb-2">
+    <div class="flex bg-white dark:bg-bgDark rounded-xl p-1 shadow-sm border border-gray-200 dark:border-gray-600">
+        <button onclick="setViewMarket('台股')" id="btn-view-tw" class="px-5 py-2 rounded-lg text-sm font-bold bg-primary text-white dark:text-bgDark transition-all shadow-sm">檢視台股</button>
+        <button onclick="setViewMarket('美股')" id="btn-view-us" class="px-5 py-2 rounded-lg text-sm font-bold text-gray-500 hover:text-gray-800 dark:text-gray-400 dark:hover:text-white transition-all">檢視美股</button>
+        <button onclick="setViewMarket('Crypto')" id="btn-view-crypto" class="px-5 py-2 rounded-lg text-sm font-bold text-gray-500 hover:text-gray-800 dark:text-gray-400 dark:hover:text-white transition-all">檢視加密貨幣</button>
+    </div>
+    <div class="flex items-center gap-3">
+        <div class="flex items-center gap-2 bg-white dark:bg-bgDark rounded-xl px-3 border border-gray-200 dark:border-gray-600 shadow-sm w-56">
+            <iconify-icon icon="solar:magnifer-bold-duotone" class="text-gray-400 text-lg flex-shrink-0"></iconify-icon>
+            <input type="text" id="search-input" placeholder="搜尋代碼 / 名稱 / 備註..."
+                oninput="renderTable()"
+                class="bg-transparent outline-none text-sm py-2 w-full text-gray-700 dark:text-gray-200 placeholder-gray-400">
+            <button onclick="clearSearch()" id="btn-clear-search" class="hidden text-gray-400 hover:text-danger transition">
+                <iconify-icon icon="solar:close-circle-bold" class="text-lg"></iconify-icon>
+            </button>
+        </div>
+        <div class="flex items-center gap-2 bg-white dark:bg-bgDark rounded-xl px-3 border border-gray-200 dark:border-gray-600 shadow-sm">
+            <iconify-icon icon="solar:calendar-bold-duotone" class="text-gray-400 text-lg flex-shrink-0"></iconify-icon>
+            <input type="text" id="filter-date-start" placeholder="開始日期"
+                class="bg-transparent outline-none text-sm py-2 w-24 text-gray-700 dark:text-gray-200 placeholder-gray-400">
+            <span class="text-gray-400 text-xs">－</span>
+            <input type="text" id="filter-date-end" placeholder="結束日期"
+                class="bg-transparent outline-none text-sm py-2 w-24 text-gray-700 dark:text-gray-200 placeholder-gray-400">
+            <button onclick="clearDateFilter()" id="btn-clear-date" class="hidden text-gray-400 hover:text-danger transition">
+                <iconify-icon icon="solar:close-circle-bold" class="text-lg"></iconify-icon>
+            </button>
+        </div>
+    </div>
+</div>
+    <!-- 第二行：搜尋 + 日期篩選 -->
+    <div class="flex justify-between items-center px-5 pb-3">
+    <div class="flex gap-1">
+        <button onclick="setTableTab('買入')" id="tab-buy" class="px-5 py-2 rounded-xl bg-inputBgLight dark:bg-inputBgDark text-primary font-bold transition flex items-center gap-1.5 shadow-sm border border-gray-200 dark:border-gray-600">
+            <iconify-icon icon="solar:cart-large-minimalistic-bold-duotone"></iconify-icon>買入紀錄
+        </button>
+        <button onclick="setTableTab('賣出')" id="tab-sell" class="px-5 py-2 rounded-xl text-gray-500 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-inputBgDark transition flex items-center gap-1.5">
+            <iconify-icon icon="solar:tag-price-bold-duotone"></iconify-icon>賣出紀錄
+        </button>
+    </div>
+    <div class="flex gap-2 items-center">
+        <button id="btn-export" onclick="exportCsv()" class="px-4 py-2 bg-success/10 hover:bg-success text-success hover:text-white rounded-xl font-bold transition flex items-center gap-2 text-sm border border-success/20">
+            <iconify-icon icon="solar:export-bold-duotone" class="text-base"></iconify-icon> 匯出 CSV
+        </button>
+        <button onclick="deleteSelected()" id="btn-batch-delete" class="hidden px-4 py-2 bg-danger/10 hover:bg-danger text-danger hover:text-white rounded-xl font-bold transition flex items-center gap-2 text-sm border border-danger/20">
+            <iconify-icon icon="solar:trash-bin-trash-bold"></iconify-icon> 刪除選取 (<span id="selected-count">0</span>)
+        </button>
+    </div>
+</div>
+</div>
                 <div class="flex-1 overflow-auto custom-scrollbar">
                     <table class="w-full text-center border-collapse min-w-[1000px] table-auto">
-                        <thead class="text-gray-500 dark:text-gray-400 text-sm tracking-wider border-b border-gray-300 dark:border-gray-700 sticky top-0 bg-white/95 dark:bg-bgDark/95 backdrop-blur-md z-10" id="table-head"></thead>
+                        <thead
+                            class="text-gray-500 dark:text-gray-400 text-sm tracking-wider border-b border-gray-300 dark:border-gray-700 sticky top-0 bg-white/95 dark:bg-bgDark/95 backdrop-blur-md z-10"
+                            id="table-head"></thead>
                         <tbody id="table-body" class="text-sm text-gray-700 dark:text-gray-200"></tbody>
                     </table>
                 </div>
@@ -222,7 +386,8 @@
                     <h1 class="text-xl font-extrabold">持倉總覽</h1>
                     <p class="text-xs text-gray-500 dark:text-gray-400">目前持有部位 · 移動平均成本法</p>
                 </div>
-                <button onclick="refreshHoldings()" class="ml-auto px-4 py-2 bg-primary/10 hover:bg-primary/20 text-primary rounded-xl font-bold transition flex items-center gap-2 text-sm border border-primary/20">
+                <button onclick="refreshHoldings()"
+                    class="ml-auto px-4 py-2 bg-primary/10 hover:bg-primary/20 text-primary rounded-xl font-bold transition flex items-center gap-2 text-sm border border-primary/20">
                     <iconify-icon icon="solar:refresh-bold-duotone"></iconify-icon> 重新整理
                 </button>
             </div>
@@ -234,7 +399,8 @@
                     <p class="text-xs text-gray-400 mt-1">支股票</p>
                 </div>
                 <div class="glass rounded-2xl p-5 shadow-lg relative overflow-hidden">
-                    <div class="absolute -right-4 -top-4 w-24 h-24 bg-purple-500 rounded-full opacity-10 blur-2xl"></div>
+                    <div class="absolute -right-4 -top-4 w-24 h-24 bg-purple-500 rounded-full opacity-10 blur-2xl">
+                    </div>
                     <p class="text-xs text-gray-500 dark:text-gray-400 font-bold mb-2">美股持倉數</p>
                     <div class="text-3xl font-extrabold text-purple-400" id="h-us-count">0</div>
                     <p class="text-xs text-gray-400 mt-1">支股票</p>
@@ -246,7 +412,8 @@
                     <p class="text-xs text-gray-400 mt-1">TWD</p>
                 </div>
                 <div class="glass rounded-2xl p-5 shadow-lg relative overflow-hidden">
-                    <div class="absolute -right-4 -top-4 w-24 h-24 bg-purple-500 rounded-full opacity-10 blur-2xl"></div>
+                    <div class="absolute -right-4 -top-4 w-24 h-24 bg-purple-500 rounded-full opacity-10 blur-2xl">
+                    </div>
                     <p class="text-xs text-gray-500 dark:text-gray-400 font-bold mb-2">美股總成本</p>
                     <div class="text-2xl font-extrabold text-purple-400 table-num" id="h-us-cost">$0.00</div>
                     <p class="text-xs text-gray-400 mt-1">USD</p>
@@ -255,7 +422,9 @@
             <div class="flex-1 glass rounded-3xl flex flex-col overflow-hidden shadow-xl">
                 <div class="flex-1 overflow-auto custom-scrollbar">
                     <table class="w-full text-center border-collapse table-auto">
-                        <thead class="text-gray-500 dark:text-gray-400 text-sm tracking-wider border-b border-gray-300 dark:border-gray-700 sticky top-0 bg-white/95 dark:bg-bgDark/95 backdrop-blur-md z-10" id="holdings-thead"></thead>
+                        <thead
+                            class="text-gray-500 dark:text-gray-400 text-sm tracking-wider border-b border-gray-300 dark:border-gray-700 sticky top-0 bg-white/95 dark:bg-bgDark/95 backdrop-blur-md z-10"
+                            id="holdings-thead"></thead>
                         <tbody id="holdings-tbody" class="text-sm text-gray-700 dark:text-gray-200"></tbody>
                     </table>
                 </div>
@@ -274,7 +443,8 @@
                     <h1 class="text-xl font-extrabold">圖表分析</h1>
                     <p class="text-xs text-gray-500 dark:text-gray-400">已實現盈虧統計 · 視覺化分析</p>
                 </div>
-                <button onclick="refreshCharts()" class="ml-auto px-4 py-2 bg-primary/10 hover:bg-primary/20 text-primary rounded-xl font-bold transition flex items-center gap-2 text-sm border border-primary/20">
+                <button onclick="refreshCharts()"
+                    class="ml-auto px-4 py-2 bg-primary/10 hover:bg-primary/20 text-primary rounded-xl font-bold transition flex items-center gap-2 text-sm border border-primary/20">
                     <iconify-icon icon="solar:refresh-bold-duotone"></iconify-icon> 重新整理
                 </button>
             </div>
@@ -344,7 +514,8 @@
                     <div class="relative" style="height: 220px;">
                         <canvas id="pieChart"></canvas>
                         <div id="pie-empty" class="chart-empty hidden">
-                            <iconify-icon icon="solar:pie-chart-bold-duotone" class="text-4xl opacity-30"></iconify-icon>
+                            <iconify-icon icon="solar:pie-chart-bold-duotone"
+                                class="text-4xl opacity-30"></iconify-icon>
                             <span>尚無已實現盈虧</span>
                         </div>
                     </div>
@@ -353,7 +524,8 @@
                 <!-- 標的排行 -->
                 <div class="col-span-3 glass rounded-2xl p-5 shadow-lg">
                     <p class="text-sm font-extrabold mb-4 flex items-center gap-2">
-                        <iconify-icon icon="solar:ranking-bold-duotone" class="text-primary"></iconify-icon>各標的盈虧排行 (Top 10)
+                        <iconify-icon icon="solar:ranking-bold-duotone" class="text-primary"></iconify-icon>各標的盈虧排行 (Top
+                        10)
                     </p>
                     <div class="relative" style="height: 220px;">
                         <canvas id="rankChart"></canvas>
@@ -406,6 +578,9 @@
         window.onload = () => initDashboard();
     </script>
     <!-- Toast 提示 -->
-    <div id="toast" class="fixed bottom-6 right-6 z-50 bg-cardDark text-white text-sm font-bold px-5 py-3 rounded-2xl shadow-2xl border border-white/10 opacity-0 translate-y-2 transition-all duration-300 pointer-events-none"></div>
+    <div id="toast"
+        class="fixed bottom-6 right-6 z-50 bg-cardDark text-white text-sm font-bold px-5 py-3 rounded-2xl shadow-2xl border border-white/10 opacity-0 translate-y-2 transition-all duration-300 pointer-events-none">
+    </div>
 </body>
+
 </html>
