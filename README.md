@@ -71,7 +71,7 @@ python main.py
 
 ![Dashboard](assets/dashboard.png)
 ![持倉總覽](assets/holdings.png)
-![圖表分析](assets/charts.png)
+![圖表分析](assets/charts.png)SSSS
 
 ---
 
