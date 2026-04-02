@@ -249,10 +249,11 @@ async function saveRecord() {
 
 function editRow(id) {
     const row = allRecords.find(r => r.id === id);
-    editingId = id;
 
     const targetMarket = (viewMarket === 'Crypto') ? 'Crypto' : row.market;
     if (inputMarket !== targetMarket) setInputMarket(targetMarket);
+
+    editingId = id;
 
     if (inputMarket !== 'Crypto') {
         fpInstance.setDate(row.date);
