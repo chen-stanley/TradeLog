@@ -25,17 +25,17 @@ async function refreshStockProfit() {
 
     // 統計卡
     const s = res.data.summary;
-    const fmt = (val, dec) => {
+    const fmt = (val) => {
         const prefix = val > 0 ? '+' : '';
-        return `${prefix}${val.toLocaleString('en-US', { minimumFractionDigits: dec, maximumFractionDigits: dec })}`;
+        return `${prefix}${formatNum(val)}`;
     };
     const colorClass = (val) => val >= 0 ? 'text-success' : 'text-danger';
 
-    document.getElementById('sp-stat-twd').innerText    = fmt(s.twd, 0);
+    document.getElementById('sp-stat-twd').innerText    = fmt(s.twd);
     document.getElementById('sp-stat-twd').className    = `text-3xl font-extrabold table-num mt-2 ${colorClass(s.twd)}`;
-    document.getElementById('sp-stat-usd').innerText    = fmt(s.usd, 2);
+    document.getElementById('sp-stat-usd').innerText    = fmt(s.usd);
     document.getElementById('sp-stat-usd').className    = `text-3xl font-extrabold table-num mt-2 ${colorClass(s.usd)}`;
-    document.getElementById('sp-stat-crypto').innerText = fmt(s.crypto, 2);
+    document.getElementById('sp-stat-crypto').innerText = fmt(s.crypto);
     document.getElementById('sp-stat-crypto').className = `text-3xl font-extrabold table-num mt-2 ${colorClass(s.crypto)}`;
 
     renderStockProfitList();
@@ -98,9 +98,9 @@ function renderStockProfitList() {
     sorted.forEach(s => {
         const isExpanded  = expandedSymbols.has(s.symbol);
         const pColor      = s.total_profit > 0 ? 'text-success' : (s.total_profit < 0 ? 'text-danger' : 'text-gray-400');
-        const profitStr   = s.total_profit > 0
-            ? `+${s.total_profit.toLocaleString('en-US', { minimumFractionDigits: 2 })}`
-            : s.total_profit.toLocaleString('en-US', { minimumFractionDigits: 2 });
+        const profitStr = s.total_profit > 0
+            ? `+${formatNum(s.total_profit)}`
+            : formatNum(s.total_profit);
         const currency    = s.market === '台股' ? 'TWD' : (s.market === '美股' ? 'USD' : 'USDT');
         const marketColor = s.market === '台股' ? 'text-primary bg-primary/10' : (s.market === '美股' ? 'text-purple-400 bg-purple-400/10' : 'text-crypto bg-crypto/10');
 
@@ -116,7 +116,7 @@ function renderStockProfitList() {
                 const profit   = parseFloat(r.profit || 0);
                 const profitColor = profit > 0 ? 'text-success' : (profit < 0 ? 'text-danger' : 'text-gray-400');
                 const profitDisplay = r.action === '賣出'
-                    ? `<span class="font-bold ${profitColor}">${profit > 0 ? '+' : ''}${profit.toLocaleString('en-US', { minimumFractionDigits: 2 })}</span>`
+                    ? `<span class="font-bold ${profitColor}">${profit > 0 ? '+' : ''}${formatNum(profit)}</span>`
                     : `<span class="text-gray-400">-</span>`;
 
                 return `
@@ -128,7 +128,7 @@ function renderStockProfitList() {
                             </span>
                         </td>
                         <td class="px-4 py-2.5 text-center text-xs table-num">${parseFloat(r.qty || 0).toLocaleString('en-US', { maximumFractionDigits: 4 })} 股</td>
-                        <td class="px-4 py-2.5 text-center text-xs table-num">${parseFloat(price).toLocaleString('en-US', { minimumFractionDigits: 2 })} ${currency}</td>
+                        <td class="px-4 py-2.5 text-center text-xs table-num">${formatNum(price)} ${currency}</td>
                         <td class="px-4 py-2.5 text-center text-xs table-num">${profitDisplay}</td>
                         <td class="px-4 py-2.5 text-center text-xs text-gray-400 truncate max-w-[120px]">${r.remark || '-'}</td>
                     </tr>`;

@@ -116,3 +116,9 @@ function flashSuccess() {
         { backgroundColor: isDarkMode ? "#1E2329" : "#F3F4F6", duration: 0.8, ease: "power2.out", clearProps: "backgroundColor" }
     );
 }
+
+// ==================== 數字格式化 ====================
+
+function formatNum(val, maxDec = 2) {
+    return parseFloat(parseFloat(val).toFixed(maxDec)).toLocaleString('en-US');
+}

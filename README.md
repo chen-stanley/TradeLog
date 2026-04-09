@@ -79,6 +79,7 @@ python main.py
 ![Dashboard](assets/dashboard.png)
 ![持倉總覽](assets/holdings.png)
 ![圖表分析](assets/charts.png)
+![個股盈虧](assets/profit.png)
 
 ---
 

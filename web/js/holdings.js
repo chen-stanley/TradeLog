@@ -108,8 +108,8 @@ function renderHoldingsTable() {
                 <td class="${tdBase} font-bold ${marketColor}">${h.symbol}</td>
                 <td class="${tdBase} text-gray-600 dark:text-gray-300">${h.name || '-'}</td>
                 <td class="${tdNum}">${h.qty.toLocaleString('en-US', {maximumFractionDigits: 4})}</td>
-                <td class="${tdNum}">${h.avg_cost.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})} ${currency}</td>
-                <td class="${tdNum} font-bold text-purple-500 dark:text-purple-400">${h.total_cost.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})} ${currency}</td>
+                <td class="${tdNum}">${formatNum(h.avg_cost)} ${currency}</td>
+                <td class="${tdNum} font-bold text-purple-500 dark:text-purple-400">${formatNum(h.total_cost)} ${currency}</td>
             </tr>`;
     });
 }

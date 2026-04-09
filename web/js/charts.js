@@ -89,16 +89,14 @@ function renderStatCards(winRate, best, worst) {
     const bestProfit = best.profit || 0;
     document.getElementById('c-best-symbol').innerText = best.symbol || '--';
     document.getElementById('c-best-profit').innerText = bestProfit >= 0
-        ? `+${bestProfit.toLocaleString('en-US', {minimumFractionDigits: 2})}`
-        : bestProfit.toLocaleString('en-US', {minimumFractionDigits: 2});
+        ? `+${formatNum(bestProfit)}` : formatNum(bestProfit);
     document.getElementById('c-best-profit').className = `text-2xl font-extrabold table-num mt-1 ${bestProfit >= 0 ? 'text-success' : 'text-danger'}`;
 
     // 最差標的
     const worstProfit = worst.profit || 0;
     document.getElementById('c-worst-symbol').innerText = worst.symbol || '--';
     document.getElementById('c-worst-profit').innerText = worstProfit >= 0
-        ? `+${worstProfit.toLocaleString('en-US', {minimumFractionDigits: 2})}`
-        : worstProfit.toLocaleString('en-US', {minimumFractionDigits: 2});
+        ? `+${formatNum(worstProfit)}` : formatNum(worstProfit);
     document.getElementById('c-worst-profit').className = `text-2xl font-extrabold table-num mt-1 ${worstProfit >= 0 ? 'text-success' : 'text-danger'}`;
 }
 

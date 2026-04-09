@@ -415,15 +415,16 @@ if (dateEnd) {
             const price = viewMarket === '台股' ? row.price_twd : row.price_usd;
             const pColor = row.profit > 0 ? 'text-success' : (row.profit < 0 ? 'text-danger' : 'text-gray-500 dark:text-gray-400');
             const isChecked = selectedRows.has(row.id) ? 'checked' : '';
+            const symbolColor = viewMarket === '台股' ? 'color: #26C0DB' : 'color: #A78BFA';
             body.innerHTML += `
                 <tr class="border-b border-gray-100 dark:border-gray-700/50 hover:bg-inputBgLight/60 dark:hover:bg-inputBgDark/60 transition-colors group">
                     <td class="px-4 py-3 text-center"><input type="checkbox" value="${row.id}" onchange="toggleRowSelection(this)" ${isChecked}></td>
                     <td class="${tdText}">${row.date}</td>
-                    <td class="${tdText} font-bold text-primary">${row.symbol}</td>
+                    <td class="${tdText} font-bold" style="${symbolColor}">${row.symbol}</td>
                     <td class="${tdText}">${row.name || '-'}</td>
                     <td class="${tdNum}">${row.qty}</td>
-                    <td class="${tdNum}">${price}</td>
-                    <td class="${tdNum} font-bold text-purple-500 dark:text-purple-400">${row.total_cost.toFixed(2)}</td>
+                    <td class="${tdNum} font-bold text-yellow-400 dark:text-yellow-300">${price}</td>
+                    <td class="${tdNum} font-bold text-purple-500 dark:text-purple-400">${formatNum(row.total_cost)}</td>
                     <td class="${tdNum}">${row.actual_twd}</td>
                     <td class="${tdNum}">${row.fee}</td>
                     <td class="${tdNum} font-bold ${pColor}">${row.profit}</td>
