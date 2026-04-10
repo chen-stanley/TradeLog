@@ -99,6 +99,7 @@ function renderStockProfitList() {
         return spSortAsc ? vA - vB : vB - vA;
     });
 
+    let listHtml = '';
     sorted.forEach(s => {
         const isExpanded  = expandedSymbols.has(s.symbol);
         const pColor      = s.total_profit > 0 ? 'text-success' : (s.total_profit < 0 ? 'text-danger' : 'text-gray-400');
@@ -160,7 +161,7 @@ function renderStockProfitList() {
                 </tr>`;
         }
 
-        container.innerHTML += `
+        listHtml += `
             <tr class="border-b border-gray-100 dark:border-gray-700/50 hover:bg-inputBgLight/60 dark:hover:bg-inputBgDark/60 transition-colors cursor-pointer group"
                 onclick="toggleExpand('${s.symbol}')">
                 <td class="px-4 py-3.5 text-center">
@@ -177,4 +178,5 @@ function renderStockProfitList() {
             </tr>
             ${detailHtml}`;
     });
+    container.innerHTML = listHtml;
 }

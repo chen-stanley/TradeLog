@@ -491,6 +491,11 @@ def add_record(mode, data):
 
         c.execute(f"INSERT INTO {table} ({columns}) VALUES ({placeholders})", values)
         conn.commit()
+
+        # 新增後重新對帳，確保補登舊日期的買入時後續賣出盈虧同步更新
+        if mode == 'Stock':
+            recalculate_symbol_profits(data['symbol'], conn)
+
         conn.close()
         return {"status": "success"}
     except ValueError as ve:

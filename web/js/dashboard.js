@@ -474,12 +474,13 @@ if (dateEnd) {
             <th class="px-3 py-3 text-center whitespace-nowrap">操作</th>
         </tr>`;
 
+        let rowsHtml = '';
         pagedData.forEach(row => {
             const price = viewMarket === '台股' ? row.price_twd : row.price_usd;
             const pColor = row.profit > 0 ? 'text-success' : (row.profit < 0 ? 'text-danger' : 'text-gray-500 dark:text-gray-400');
             const isChecked = selectedRows.has(row.id) ? 'checked' : '';
             const symbolColor = viewMarket === '台股' ? 'color: #26C0DB' : 'color: #A78BFA';
-            body.innerHTML += `
+            rowsHtml += `
                 <tr class="border-b border-gray-100 dark:border-gray-700/50 hover:bg-inputBgLight/60 dark:hover:bg-inputBgDark/60 transition-colors group">
                     <td class="px-4 py-3 text-center"><input type="checkbox" value="${row.id}" onchange="toggleRowSelection(this)" ${isChecked}></td>
                     <td class="${tdText}">${row.date}</td>
@@ -498,6 +499,7 @@ if (dateEnd) {
                     </td>
                 </tr>`;
         });
+        body.innerHTML = rowsHtml;
     } else {
         head.innerHTML = `<tr>${chkHead}
             ${getTh('時間', 'dt')} ${getTh('幣種', 'symbol')}
@@ -506,10 +508,11 @@ if (dateEnd) {
             <th class="px-3 py-3 text-center whitespace-nowrap">操作</th>
         </tr>`;
 
+        let rowsHtml = '';
         pagedData.forEach(row => {
             const pColor = row.profit > 0 ? 'text-success' : (row.profit < 0 ? 'text-danger' : 'text-gray-500 dark:text-gray-400');
             const isChecked = selectedRows.has(row.id) ? 'checked' : '';
-            body.innerHTML += `
+            rowsHtml += `
                 <tr class="border-b border-gray-100 dark:border-gray-700/50 hover:bg-inputBgLight/60 dark:hover:bg-inputBgDark/60 transition-colors group">
                     <td class="px-4 py-3 text-center"><input type="checkbox" value="${row.id}" onchange="toggleRowSelection(this)" ${isChecked}></td>
                     <td class="${tdText}">${row.dt}</td>
@@ -523,6 +526,7 @@ if (dateEnd) {
                     </td>
                 </tr>`;
         });
+        body.innerHTML = rowsHtml;
     }
 
     renderPaginationBar(totalItems, totalPages);

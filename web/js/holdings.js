@@ -151,6 +151,7 @@ function renderHoldingsTable() {
     const tdBase = "px-3 py-2.5 text-center whitespace-nowrap";
     const tdNum  = `${tdBase} table-num`;
 
+    let holdingsHtml = '';
     sorted.forEach(h => {
         const currency    = h.market === '台股' ? 'TWD' : 'USD';
         const marketColor = h.market === '台股' ? 'text-primary' : 'text-purple-400';
@@ -186,7 +187,7 @@ function renderHoldingsTable() {
             }
         }
 
-        tbody.innerHTML += `
+        holdingsHtml += `
             <tr class="border-b border-gray-100 dark:border-gray-700/50 hover:bg-inputBgLight/60 dark:hover:bg-inputBgDark/60 transition-colors">
                 <td class="${tdBase}">
                     <span class="px-2 py-1 rounded-lg text-xs font-bold ${marketColor} ${marketBg}">${h.market}</span>
@@ -201,4 +202,5 @@ function renderHoldingsTable() {
                 <td class="${tdNum}">${amtCell}</td>
             </tr>`;
     });
+    tbody.innerHTML = holdingsHtml;
 }
