@@ -116,7 +116,7 @@ function renderPieChart(marketShare) {
     chartInstances['pieChart'] = new Chart(ctx, {
         type: 'doughnut',
         data: {
-            labels: ['台股 (TWD)', '美股 (USD)', 'Crypto (USDT)'],
+            labels: ['台股', '美股', 'Crypto'],
             datasets: [{
                 data: [marketShare.twd, marketShare.usd, marketShare.crypto],
                 backgroundColor: ['#26C0DB', '#A78BFA', '#4ECDC4'],
@@ -141,9 +141,9 @@ function renderPieChart(marketShare) {
                 tooltip: {
                     callbacks: {
                         label: (ctx) => {
-                            const val = ctx.parsed;
-                            const pct = ((val / total) * 100).toFixed(1);
-                            return ` ${ctx.label}: ${val.toLocaleString('en-US', {minimumFractionDigits: 2})} (${pct}%)`;
+                            const count = ctx.parsed;
+                            const pct = ((count / total) * 100).toFixed(1);
+                            return ` ${ctx.label}：${count} 筆 (${pct}%)`;
                         }
                     }
                 }

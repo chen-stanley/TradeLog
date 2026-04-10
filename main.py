@@ -341,10 +341,10 @@ def get_chart_data():
         best  = max(symbol_profit.items(), key=lambda x: x[1]) if symbol_profit else ('--', 0)
         worst = min(symbol_profit.items(), key=lambda x: x[1]) if symbol_profit else ('--', 0)
 
-        # ── 6. 市場佔比（已實現盈虧絕對值佔比）──
-        twd_total    = abs(sum(float(r.get('profit') or 0) for r in stock_records if r['action'] == '賣出' and r['market'] == '台股'))
-        usd_total    = abs(sum(float(r.get('profit') or 0) for r in stock_records if r['action'] == '賣出' and r['market'] == '美股'))
-        crypto_total = abs(sum(float(r.get('profit') or 0) for r in crypto_records if r['action'] == '賣出'))
+        # ── 6. 各市場交易次數佔比 ──
+        twd_count    = sum(1 for r in stock_records if r['market'] == '台股')
+        usd_count    = sum(1 for r in stock_records if r['market'] == '美股')
+        crypto_count = len(crypto_records)
 
         return {
             "status": "success",
@@ -361,9 +361,9 @@ def get_chart_data():
                 "best":  {"symbol": best[0],  "profit": round(best[1], 2)},
                 "worst": {"symbol": worst[0], "profit": round(worst[1], 2)},
                 "market_share": {
-                    "twd":    round(twd_total, 2),
-                    "usd":    round(usd_total, 2),
-                    "crypto": round(crypto_total, 2)
+                    "twd":    twd_count,
+                    "usd":    usd_count,
+                    "crypto": crypto_count
                 }
             }
         }
