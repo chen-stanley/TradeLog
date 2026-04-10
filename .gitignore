@@ -1,5 +1,6 @@
 # Claude Code 設定
 CLAUDE.md
+.claude/
 
 # 資料庫檔案
 *.db
