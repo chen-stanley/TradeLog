@@ -225,23 +225,23 @@ def get_stock_profit():
 
 @eel.expose
 def export_csv(mode):
-    """匯出交易紀錄為 CSV 檔案，存到使用者桌面"""
+    """匯出交易紀錄為 CSV 檔案，由使用者選擇儲存位置"""
     import csv
     import os
     from datetime import datetime
+    import tkinter as tk
+    from tkinter import filedialog
 
     try:
         conn = get_conn()
         c = conn.cursor()
 
-        # 檔名加上時間戳記，避免覆蓋
         timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-        desktop = os.path.join(os.path.expanduser("~"), "Desktop")
 
         if mode == 'Stock':
             c.execute("SELECT * FROM records ORDER BY date ASC, id ASC")
             rows = [dict(row) for row in c.fetchall()]
-            filename = os.path.join(desktop, f"TradeLog_Stock_{timestamp}.csv")
+            default_name = f"TradeLog_Stock_{timestamp}.csv"
             fieldnames = ['id', 'date', 'market', 'symbol', 'name', 'action',
                           'qty', 'price_twd', 'price_usd', 'actual_twd', 'fee', 'profit', 'remark']
             headers = ['ID', '日期', '市場', '代碼', '名稱', '動作',
@@ -249,11 +249,26 @@ def export_csv(mode):
         else:
             c.execute("SELECT * FROM crypto_records ORDER BY dt ASC, id ASC")
             rows = [dict(row) for row in c.fetchall()]
-            filename = os.path.join(desktop, f"TradeLog_Crypto_{timestamp}.csv")
+            default_name = f"TradeLog_Crypto_{timestamp}.csv"
             fieldnames = ['id', 'dt', 'symbol', 'action', 'price', 'profit', 'remark']
             headers = ['ID', '時間', '幣種', '動作', '成交金額(USDT)', '盈虧(USDT)', '備註']
 
         conn.close()
+
+        # 開啟原生儲存對話框
+        root = tk.Tk()
+        root.withdraw()
+        root.wm_attributes('-topmost', True)
+        filename = filedialog.asksaveasfilename(
+            title='選擇儲存位置',
+            defaultextension='.csv',
+            filetypes=[('CSV 檔案', '*.csv'), ('所有檔案', '*.*')],
+            initialfile=default_name
+        )
+        root.destroy()
+
+        if not filename:
+            return {"status": "cancelled"}
 
         with open(filename, 'w', newline='', encoding='utf-8-sig') as f:
             writer = csv.writer(f)

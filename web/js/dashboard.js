@@ -630,7 +630,9 @@ async function exportCsv() {
     btn.innerHTML = `<iconify-icon icon="solar:export-bold-duotone" class="text-base"></iconify-icon> 匯出 CSV`;
 
     if (res.status === 'success') {
-        showToast(`已匯出至桌面：${res.filename}`, 'success');
+        showToast(`已匯出：${res.filename}`, 'success');
+    } else if (res.status === 'cancelled') {
+        // 使用者關閉對話框，不顯示任何提示
     } else {
         showToast(`匯出失敗：${res.message}`, 'error');
     }
