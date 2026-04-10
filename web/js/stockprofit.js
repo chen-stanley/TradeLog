@@ -42,14 +42,14 @@ async function refreshStockProfit() {
 
 // ==================== 排序 ====================
 
-const SP_SORT_LABELS = { last_date: '最後交易日', total_profit: '盈虧金額', symbol: '代碼' };
+const SP_SORT_LABELS = { last_date: '最後交易日', symbol: '代碼' };
 
 function spSort(col) {
     if (spSortCol === col) spSortAsc = !spSortAsc;
     else { spSortCol = col; spSortAsc = false; }
 
     // 更新排序按鈕樣式與方向箭頭
-    ['last_date', 'total_profit', 'symbol'].forEach(c => {
+    ['last_date', 'symbol'].forEach(c => {
         const btn = document.getElementById(`sp-sort-${c}`);
         if (!btn) return;
         if (c === spSortCol) {
@@ -116,7 +116,7 @@ function renderStockProfitList() {
                 const isBuy    = r.action === '買入';
                 const actionColor = isBuy ? 'text-success' : 'text-danger';
                 const actionIcon  = isBuy ? 'solar:cart-large-minimalistic-bold-duotone' : 'solar:tag-price-bold-duotone';
-                const date     = r.date || r.dt || '';
+                const date     = r.date ? formatDateStr(r.date) : (r.dt || '');
                 const price    = r.price_twd || r.price_usd || r.price || 0;
                 const profit   = parseFloat(r.profit || 0);
                 const profitColor = profit > 0 ? 'text-success' : (profit < 0 ? 'text-danger' : 'text-gray-400');
@@ -169,7 +169,7 @@ function renderStockProfitList() {
                 </td>
                 <td class="px-4 py-3.5 text-center font-bold ${marketColor.split(' ')[0]}">${s.symbol}</td>
                 <td class="px-4 py-3.5 text-center text-gray-600 dark:text-gray-300">${s.name || '-'}</td>
-                <td class="px-4 py-3.5 text-center text-xs text-gray-500">${s.last_date}</td>
+                <td class="px-4 py-3.5 text-center text-xs text-gray-500">${formatDateStr(s.last_date)}</td>
                 <td class="px-4 py-3.5 text-center table-num text-gray-500 text-sm">${s.buy_count} 買 / ${s.sell_count} 賣</td>
                 <td class="px-4 py-3.5 text-center font-bold table-num ${pColor}">${profitStr} ${s.sell_count > 0 ? currency : ''}</td>
                 <td class="px-4 py-3.5 text-center text-gray-400 group-hover:text-primary transition-colors">

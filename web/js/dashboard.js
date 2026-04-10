@@ -483,7 +483,7 @@ if (dateEnd) {
             rowsHtml += `
                 <tr class="border-b border-gray-100 dark:border-gray-700/50 hover:bg-inputBgLight/60 dark:hover:bg-inputBgDark/60 transition-colors group">
                     <td class="px-4 py-3 text-center"><input type="checkbox" value="${row.id}" onchange="toggleRowSelection(this)" ${isChecked}></td>
-                    <td class="${tdText}">${row.date}</td>
+                    <td class="${tdText}">${formatDateStr(row.date)}</td>
                     <td class="${tdText} font-bold" style="${symbolColor}">${row.symbol}</td>
                     <td class="${tdText}">${row.name || '-'}</td>
                     <td class="${tdNum}">${row.qty}</td>

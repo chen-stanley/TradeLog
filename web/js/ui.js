@@ -156,6 +156,12 @@ function formatNum(val, maxDec = 2) {
     return parseFloat(parseFloat(val).toFixed(maxDec)).toLocaleString('en-US');
 }
 
+// YYYYMMDD → YYYY/MM/DD
+function formatDateStr(d) {
+    if (!d || d.length !== 8) return d || '';
+    return `${d.slice(0, 4)}/${d.slice(4, 6)}/${d.slice(6, 8)}`;
+}
+
 // ==================== 即時股價共用狀態 ====================
 
 let livePricesData = {};   // { symbol: { price, market } }
