@@ -328,23 +328,25 @@ def get_chart_data():
 
         symbol_sorted = dict(sorted(symbol_profit.items(), key=lambda x: x[1], reverse=True))
 
-        # ── 3. 累積盈虧走勢 ──
-        cumulative = []
-        total = 0.0
-        all_sells = []
+        # ── 3. 累積盈虧走勢（各市場分開）──
+        def build_cumulative(sells):
+            result = []
+            total = 0.0
+            for s in sorted(sells, key=lambda x: x['date']):
+                total += s['profit']
+                result.append({'date': s['date'], 'total': round(total, 2)})
+            return result
 
-        for r in stock_records:
-            if r['action'] != '賣出': continue
-            all_sells.append({'date': r['date'], 'profit': float(r.get('profit') or 0)})
+        twd_sells    = [{'date': r['date'], 'profit': float(r.get('profit') or 0)} for r in stock_records if r['action'] == '賣出' and r['market'] == '台股']
+        usd_sells    = [{'date': r['date'], 'profit': float(r.get('profit') or 0)} for r in stock_records if r['action'] == '賣出' and r['market'] == '美股']
+        crypto_sells = [{'date': r['dt'][:10].replace('-', ''), 'profit': float(r.get('profit') or 0)} for r in crypto_records if r['action'] == '賣出']
+        all_sells    = twd_sells + usd_sells + crypto_sells
 
-        for r in crypto_records:
-            if r['action'] != '賣出': continue
-            all_sells.append({'date': r['dt'][:10].replace('-', ''), 'profit': float(r.get('profit') or 0)})
-
-        all_sells.sort(key=lambda x: x['date'])
-        for s in all_sells:
-            total += s['profit']
-            cumulative.append({'date': s['date'], 'total': round(total, 2)})
+        cumulative = {
+            'twd':    build_cumulative(twd_sells),
+            'usd':    build_cumulative(usd_sells),
+            'crypto': build_cumulative(crypto_sells),
+        }
 
         # ── 4. 勝率統計 ──
         wins   = sum(1 for s in all_sells if s['profit'] > 0)

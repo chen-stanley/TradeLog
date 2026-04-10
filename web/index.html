@@ -634,15 +634,56 @@
 
             <!-- 累積盈虧折線圖 -->
             <div class="glass rounded-2xl p-5 shadow-lg flex-shrink-0">
-                <p class="text-sm font-extrabold mb-4 flex items-center gap-2">
-                    <iconify-icon icon="solar:chart-2-bold-duotone" class="text-primary"></iconify-icon>累積盈虧走勢
-                </p>
-                <div class="relative" style="height: 200px;">
-                    <canvas id="lineChart"></canvas>
-                    <div id="line-empty" class="chart-empty hidden">
-                        <iconify-icon icon="solar:chart-2-bold-duotone" class="text-4xl opacity-30"></iconify-icon>
-                        <span>尚無已實現盈虧</span>
+                <!-- 標題 + 左右切換 -->
+                <div class="flex items-center justify-between mb-4">
+                    <p class="text-sm font-extrabold flex items-center gap-2">
+                        <iconify-icon icon="solar:chart-2-bold-duotone" class="text-primary"></iconify-icon>
+                        累積盈虧走勢
+                    </p>
+                    <div class="flex items-center gap-2">
+                        <button onclick="lineChartPrev()" class="w-7 h-7 flex items-center justify-center rounded-lg bg-gray-100 dark:bg-bgDark hover:bg-primary/20 hover:text-primary text-gray-400 transition">
+                            <iconify-icon icon="solar:alt-arrow-left-bold" class="text-sm"></iconify-icon>
+                        </button>
+                        <span id="line-market-label" class="text-xs font-bold text-primary min-w-[40px] text-center">台股</span>
+                        <button onclick="lineChartNext()" class="w-7 h-7 flex items-center justify-center rounded-lg bg-gray-100 dark:bg-bgDark hover:bg-primary/20 hover:text-primary text-gray-400 transition">
+                            <iconify-icon icon="solar:alt-arrow-right-bold" class="text-sm"></iconify-icon>
+                        </button>
                     </div>
+                </div>
+                <!-- 圖表區（overflow hidden 讓滑動不溢出）-->
+                <div class="overflow-hidden">
+                    <div id="line-slide-track" class="flex" style="will-change: transform;">
+                        <!-- 台股 -->
+                        <div class="flex-shrink-0 relative" style="height: 200px; min-width: 100%;">
+                            <canvas id="lineChart-twd"></canvas>
+                            <div id="line-empty-twd" class="chart-empty hidden">
+                                <iconify-icon icon="solar:chart-2-bold-duotone" class="text-4xl opacity-30"></iconify-icon>
+                                <span>尚無台股已實現盈虧</span>
+                            </div>
+                        </div>
+                        <!-- 美股 -->
+                        <div class="flex-shrink-0 relative" style="height: 200px; min-width: 100%;">
+                            <canvas id="lineChart-usd"></canvas>
+                            <div id="line-empty-usd" class="chart-empty hidden">
+                                <iconify-icon icon="solar:chart-2-bold-duotone" class="text-4xl opacity-30"></iconify-icon>
+                                <span>尚無美股已實現盈虧</span>
+                            </div>
+                        </div>
+                        <!-- Crypto -->
+                        <div class="flex-shrink-0 relative" style="height: 200px; min-width: 100%;">
+                            <canvas id="lineChart-crypto"></canvas>
+                            <div id="line-empty-crypto" class="chart-empty hidden">
+                                <iconify-icon icon="solar:chart-2-bold-duotone" class="text-4xl opacity-30"></iconify-icon>
+                                <span>尚無 Crypto 已實現盈虧</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <!-- 分頁點 -->
+                <div class="flex justify-center gap-1.5 mt-3">
+                    <span id="line-dot-0" class="w-2 h-2 rounded-full bg-primary transition-all"></span>
+                    <span id="line-dot-1" class="w-2 h-2 rounded-full bg-gray-300 dark:bg-gray-600 transition-all"></span>
+                    <span id="line-dot-2" class="w-2 h-2 rounded-full bg-gray-300 dark:bg-gray-600 transition-all"></span>
                 </div>
             </div>
 

@@ -302,80 +302,131 @@ function renderRankChart(symbolProfit) {
     });
 }
 
-// ==================== 折線圖（累積盈虧走勢）====================
+// ==================== 折線圖（累積盈虧走勢，市場輪播）====================
+
+const LINE_MARKETS = [
+    { key: 'twd',    label: '台股',   unit: 'TWD',  color: '#26C0DB' },
+    { key: 'usd',    label: '美股',   unit: 'USD',  color: '#A78BFA' },
+    { key: 'crypto', label: 'Crypto', unit: 'USDT', color: '#4ECDC4' },
+];
+let lineChartIndex = 0;
+let lineCumulativeData = {};
 
 function renderLineChart(cumulative) {
-    destroyChart('lineChart');
+    lineCumulativeData = cumulative;
 
-    if (cumulative.length === 0) {
-        document.getElementById('line-empty').classList.remove('hidden');
-        return;
-    }
-    document.getElementById('line-empty').classList.add('hidden');
+    LINE_MARKETS.forEach(m => {
+        destroyChart(`lineChart-${m.key}`);
+        const data = cumulative[m.key] || [];
+        const emptyEl = document.getElementById(`line-empty-${m.key}`);
 
-    const labels = cumulative.map(c => formatDate(c.date));
-    const values = cumulative.map(c => c.total);
-    const lastVal = values[values.length - 1] || 0;
-    const lineColor = lastVal >= 0 ? '#0ECB81' : '#FF6B6B';
+        if (data.length === 0) {
+            emptyEl.classList.remove('hidden');
+            return;
+        }
+        emptyEl.classList.add('hidden');
 
-    const ctx = document.getElementById('lineChart').getContext('2d');
+        const ctx = document.getElementById(`lineChart-${m.key}`).getContext('2d');
+        const values = data.map(c => c.total);
+        const lastVal = values[values.length - 1] || 0;
+        const lineColor = lastVal >= 0 ? m.color : '#FF6B6B';
 
-    // 漸層填充
-    const gradient = ctx.createLinearGradient(0, 0, 0, 200);
-    gradient.addColorStop(0, lastVal >= 0 ? 'rgba(14,203,129,0.3)' : 'rgba(255,107,107,0.3)');
-    gradient.addColorStop(1, 'rgba(0,0,0,0)');
+        const gradient = ctx.createLinearGradient(0, 0, 0, 200);
+        gradient.addColorStop(0, lastVal >= 0 ? hexToRgba(m.color, 0.3) : 'rgba(255,107,107,0.3)');
+        gradient.addColorStop(1, 'rgba(0,0,0,0)');
 
-    chartInstances['lineChart'] = new Chart(ctx, {
-        type: 'line',
-        data: {
-            labels,
-            datasets: [{
-                label: '累積盈虧',
-                data: values,
-                borderColor: lineColor,
-                backgroundColor: gradient,
-                borderWidth: 2.5,
-                pointRadius: cumulative.length > 30 ? 0 : 4,
-                pointHoverRadius: 6,
-                pointBackgroundColor: lineColor,
-                fill: true,
-                tension: 0.4,
-            }]
-        },
-        options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            plugins: {
-                legend: { display: false },
-                tooltip: {
-                    callbacks: {
-                        label: (ctx) => {
-                            const val = ctx.parsed.y;
-                            const prefix = val >= 0 ? '+' : '';
-                            return ` 累積盈虧: ${prefix}${val.toLocaleString('en-US', {minimumFractionDigits: 2})}`;
+        chartInstances[`lineChart-${m.key}`] = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: data.map(c => formatDate(c.date)),
+                datasets: [{
+                    label: `累積盈虧 (${m.unit})`,
+                    data: values,
+                    borderColor: lineColor,
+                    backgroundColor: gradient,
+                    borderWidth: 2.5,
+                    pointRadius: data.length > 30 ? 0 : 4,
+                    pointHoverRadius: 6,
+                    pointBackgroundColor: lineColor,
+                    fill: true,
+                    tension: 0.4,
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { display: false },
+                    tooltip: {
+                        callbacks: {
+                            label: (ctx) => {
+                                const val = ctx.parsed.y;
+                                const prefix = val >= 0 ? '+' : '';
+                                return ` 累積盈虧: ${prefix}${val.toLocaleString('en-US', {minimumFractionDigits: 2})} ${m.unit}`;
+                            }
                         }
                     }
-                }
-            },
-            scales: {
-                x: {
-                    grid: { color: gridColor() },
-                    ticks: {
-                        color: tickColor(),
-                        font: { size: 10 },
-                        maxTicksLimit: 12,
+                },
+                scales: {
+                    x: {
+                        grid: { color: gridColor() },
+                        ticks: { color: tickColor(), font: { size: 10 }, maxTicksLimit: 12 }
+                    },
+                    y: {
+                        grid: { color: gridColor() },
+                        ticks: {
+                            color: tickColor(),
+                            font: { size: 11 },
+                            callback: (val) => val.toLocaleString('en-US')
+                        }
                     }
                 },
-                y: {
-                    grid: { color: gridColor() },
-                    ticks: {
-                        color: tickColor(),
-                        font: { size: 11 },
-                        callback: (val) => val.toLocaleString('en-US')
-                    }
-                }
-            },
-            animation: { duration: 1200, easing: 'easeInOutQuart' }
-        }
+                animation: { duration: 1200, easing: 'easeInOutQuart' }
+            }
+        });
     });
+
+    updateLineCarousel(false);
+}
+
+function updateLineCarousel(animate = true) {
+    const track = document.getElementById('line-slide-track');
+    const pct = lineChartIndex * -100;
+    if (animate) {
+        gsap.to(track, { x: `${pct}%`, duration: 0.4, ease: 'power2.inOut' });
+    } else {
+        gsap.set(track, { x: `${pct}%` });
+    }
+
+    document.getElementById('line-market-label').innerText = LINE_MARKETS[lineChartIndex].label;
+
+    for (let i = 0; i < LINE_MARKETS.length; i++) {
+        const dot = document.getElementById(`line-dot-${i}`);
+        if (i === lineChartIndex) {
+            dot.classList.add('bg-primary');
+            dot.classList.remove('bg-gray-300', 'dark:bg-gray-600');
+            dot.style.width = '16px';
+        } else {
+            dot.classList.remove('bg-primary');
+            dot.classList.add('bg-gray-300');
+            dot.style.width = '8px';
+        }
+    }
+}
+
+function lineChartNext() {
+    lineChartIndex = (lineChartIndex + 1) % LINE_MARKETS.length;
+    updateLineCarousel();
+}
+
+function lineChartPrev() {
+    lineChartIndex = (lineChartIndex - 1 + LINE_MARKETS.length) % LINE_MARKETS.length;
+    updateLineCarousel();
+}
+
+function hexToRgba(hex, alpha) {
+    const r = parseInt(hex.slice(1, 3), 16);
+    const g = parseInt(hex.slice(3, 5), 16);
+    const b = parseInt(hex.slice(5, 7), 16);
+    return `rgba(${r},${g},${b},${alpha})`;
 }
