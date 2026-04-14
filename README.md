@@ -16,6 +16,7 @@
 - **圖表分析** — 勝率統計、每月盈虧長條圖、累積盈虧走勢、各市場交易次數
 - **個股盈虧** — 各標的已實現盈虧與報酬率統計，支援排序與點擊展開交易明細
 - **即時股價** — 自動透過 Yahoo Finance 抓取台股（含上市/上櫃）、美股即時股價，計算未實現盈虧與匯率換算
+- **換算小工具** — 側邊快捷面板，支援 TWD/USD 即時雙向匯率換算，以及輸入股票代號與投入金額試算可買股數
 - **搜尋/篩選** — 依代碼、名稱、備註即時搜尋，支援日期範圍篩選
 - **匯出 CSV** — 匯出時可選擇儲存位置，Excel 可直接開啟
 
@@ -38,7 +39,8 @@ web/
 │   ├── dashboard.js    # 主頁邏輯
 │   ├── holdings.js     # 持倉總覽邏輯
 │   ├── charts.js       # 圖表分析邏輯
-│   └── stockprofit.js  # 個股盈虧邏輯
+│   ├── stockprofit.js  # 個股盈虧邏輯
+│   └── calculator.js   # 換算小工具邏輯
 ```
 
 ---
@@ -78,11 +80,12 @@ python main.py
 ---
 
 ## 截圖
-**v1.2.1**
+**v1.3.0**
 ![Dashboard](assets/dashboard.png)
 ![持倉總覽](assets/holdings.png)
 ![圖表分析](assets/charts.png)
 ![個股盈虧](assets/profit.png)
+![換算小工具](assets/calculator.png)
 
 ---
 
