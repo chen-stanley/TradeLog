@@ -238,6 +238,16 @@
             <iconify-icon icon="solar:graph-up-bold-duotone" class="text-2xl"></iconify-icon>
         </button>
 
+        <!-- 分隔線 -->
+        <div class="w-8 border-t border-gray-300 dark:border-gray-600 my-1"></div>
+
+        <!-- 小工具區 -->
+        <button onclick="toggleCalculatorPanel()" id="nav-calculator"
+            class="nav-item w-11 h-11 rounded-xl flex items-center justify-center transition-all text-gray-400 dark:text-gray-500 hover:bg-inputBgLight dark:hover:bg-inputBgDark hover:text-gray-700 dark:hover:text-white"
+            data-tooltip="換算小工具">
+            <iconify-icon icon="solar:calculator-bold-duotone" class="text-2xl"></iconify-icon>
+        </button>
+
         <div class="flex-1"></div>
 
         <button onclick="toggleTheme()"
@@ -773,9 +783,126 @@
     <script src="/js/holdings.js"></script>
     <script src="/js/charts.js"></script>
     <script src="/js/stockprofit.js"></script>
+    <script src="/js/calculator.js"></script>
     <script>
         window.onload = () => initDashboard();
     </script>
+    <!-- ==================== 換算小工具面板 ==================== -->
+    <div id="calculator-panel"
+        class="fixed top-4 bottom-4 glass rounded-3xl shadow-2xl z-40 w-[320px] flex flex-col overflow-hidden"
+        style="left: 88px; display: none;">
+
+        <!-- 標題列 -->
+        <div class="flex items-center justify-between px-5 pt-5 pb-4 border-b border-gray-200 dark:border-gray-700 flex-shrink-0">
+            <div class="flex items-center gap-2">
+                <iconify-icon icon="solar:calculator-bold-duotone" class="text-xl text-primary"></iconify-icon>
+                <span class="font-bold text-base">換算小工具</span>
+            </div>
+            <button onclick="toggleCalculatorPanel()"
+                class="w-8 h-8 rounded-lg flex items-center justify-center text-gray-400 hover:bg-inputBgLight dark:hover:bg-inputBgDark hover:text-gray-700 dark:hover:text-white transition-all">
+                <iconify-icon icon="solar:close-bold" class="text-lg"></iconify-icon>
+            </button>
+        </div>
+
+        <div class="flex-1 overflow-y-auto custom-scrollbar px-5 py-4 space-y-5">
+
+            <!-- 模組一：匯率換算 -->
+            <div>
+                <p class="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-widest mb-3">匯率換算</p>
+                <div class="space-y-2">
+                    <div class="relative">
+                        <input id="calc-twd" type="number" placeholder="0" oninput="convertCurrency('twd')"
+                            class="w-full bg-inputBgLight dark:bg-inputBgDark rounded-xl px-4 py-3 pr-16 text-right text-lg font-bold outline-none focus:ring-2 focus:ring-primary transition">
+                        <span class="absolute right-4 top-1/2 -translate-y-1/2 text-sm font-bold text-gray-400">TWD</span>
+                    </div>
+                    <div class="flex justify-center">
+                        <button onclick="swapCurrency()"
+                            class="w-9 h-9 rounded-xl bg-inputBgLight dark:bg-inputBgDark hover:bg-primary hover:text-white dark:hover:bg-primary transition-all flex items-center justify-center text-gray-400">
+                            <iconify-icon icon="solar:alt-arrow-up-bold-duotone" class="text-lg" id="swap-icon"></iconify-icon>
+                        </button>
+                    </div>
+                    <div class="relative">
+                        <input id="calc-usd" type="number" placeholder="0" oninput="convertCurrency('usd')"
+                            class="w-full bg-inputBgLight dark:bg-inputBgDark rounded-xl px-4 py-3 pr-16 text-right text-lg font-bold outline-none focus:ring-2 focus:ring-primary transition">
+                        <span class="absolute right-4 top-1/2 -translate-y-1/2 text-sm font-bold text-gray-400">USD</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 分隔線 -->
+            <div class="border-t border-gray-200 dark:border-gray-700"></div>
+
+            <!-- 模組二：股數試算 -->
+            <div>
+                <p class="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-widest mb-3">股數試算</p>
+                <div class="space-y-3">
+                    <div class="relative">
+                        <input id="calc-symbol" type="text" placeholder="股票代號（如 AAPL）" maxlength="10"
+                            class="w-full bg-inputBgLight dark:bg-inputBgDark rounded-xl px-4 py-3 text-sm font-bold outline-none focus:ring-2 focus:ring-primary transition uppercase"
+                            oninput="this.value=this.value.toUpperCase()">
+                    </div>
+                    <div class="flex gap-2">
+                        <div class="relative flex-1">
+                            <input id="calc-amount" type="number" placeholder="投入金額"
+                                class="w-full bg-inputBgLight dark:bg-inputBgDark rounded-xl px-4 py-3 pr-16 text-right text-sm font-bold outline-none focus:ring-2 focus:ring-primary transition">
+                            <span id="calc-amount-unit" class="absolute right-4 top-1/2 -translate-y-1/2 text-xs font-bold text-gray-400">TWD</span>
+                        </div>
+                        <!-- TWD / USD 切換 -->
+                        <div class="flex bg-inputBgLight dark:bg-inputBgDark rounded-xl p-1 flex-shrink-0">
+                            <button id="calc-unit-twd" onclick="setCalcUnit('TWD')"
+                                class="px-2 py-1 rounded-lg text-xs font-bold bg-primary text-white transition-all">TWD</button>
+                            <button id="calc-unit-usd" onclick="setCalcUnit('USD')"
+                                class="px-2 py-1 rounded-lg text-xs font-bold text-gray-500 dark:text-gray-400 hover:text-gray-800 dark:hover:text-white transition-all">USD</button>
+                        </div>
+                    </div>
+                    <button onclick="calcShares()"
+                        class="w-full bg-primary hover:bg-cyan-400 text-white dark:text-bgDark font-bold py-3 rounded-xl transition transform hover:scale-[1.02] active:scale-[0.98] shadow-md flex items-center justify-center gap-2 text-sm">
+                        <iconify-icon icon="solar:calculator-minimalistic-bold-duotone" class="text-base"></iconify-icon>試算
+                    </button>
+
+                    <!-- 試算結果 -->
+                    <div id="calc-result" class="hidden bg-inputBgLight dark:bg-inputBgDark rounded-2xl p-4 space-y-1.5">
+                        <div class="flex justify-between items-center">
+                            <span class="text-xs text-gray-500 dark:text-gray-400">投入金額</span>
+                            <span id="res-twd" class="text-sm font-bold"></span>
+                        </div>
+                        <div class="flex justify-between items-center">
+                            <span class="text-xs text-gray-500 dark:text-gray-400">換算美金</span>
+                            <span id="res-usd" class="text-sm font-bold text-primary"></span>
+                        </div>
+                        <div class="border-t border-gray-300 dark:border-gray-600 my-1"></div>
+                        <div class="flex justify-between items-center">
+                            <span class="text-xs text-gray-500 dark:text-gray-400" id="res-stock-label">現價</span>
+                            <span id="res-price" class="text-sm font-bold"></span>
+                        </div>
+                        <div class="flex justify-between items-center">
+                            <span class="text-xs text-gray-500 dark:text-gray-400">可買股數</span>
+                            <span id="res-shares" class="text-lg font-bold text-success"></span>
+                        </div>
+                        <div class="flex justify-between items-center">
+                            <span class="text-xs text-gray-500 dark:text-gray-400">剩餘</span>
+                            <span id="res-remainder" class="text-sm font-bold text-gray-400"></span>
+                        </div>
+                    </div>
+
+                    <!-- 試算錯誤訊息 -->
+                    <div id="calc-error" class="hidden bg-danger/10 text-danger text-xs font-bold rounded-xl px-4 py-3"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 底部：資訊列 + 全部刷新 -->
+        <div class="px-5 py-4 border-t border-gray-200 dark:border-gray-700 flex-shrink-0 space-y-3">
+            <div class="flex items-center justify-between text-xs text-gray-400">
+                <span id="calc-source-label">Yahoo Finance · --:--</span>
+            </div>
+            <button onclick="refreshAll()"
+                class="w-full flex items-center justify-center gap-2 py-2.5 rounded-xl border border-gray-300 dark:border-gray-600 hover:bg-inputBgLight dark:hover:bg-inputBgDark text-sm font-bold text-gray-500 dark:text-gray-400 hover:text-gray-800 dark:hover:text-white transition-all">
+                <iconify-icon id="refresh-icon" icon="solar:refresh-bold-duotone" class="text-base"></iconify-icon>全部刷新
+            </button>
+        </div>
+    </div>
+
     <!-- Toast 提示 -->
     <div id="toast"
         class="fixed bottom-6 right-6 z-50 bg-cardDark text-white text-sm font-bold px-5 py-3 rounded-2xl shadow-2xl border border-white/10 opacity-0 translate-y-2 transition-all duration-300 pointer-events-none">

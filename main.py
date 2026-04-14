@@ -670,6 +670,41 @@ def get_live_prices():
         return {"status": "error", "message": str(e)}
 
 
+# ==================== 投資小工具 ====================
+
+@eel.expose
+def get_exchange_rate():
+    """抓取目前 USD/TWD 匯率"""
+    try:
+        import yfinance as yf
+        from datetime import datetime
+        price = yf.Ticker('USDTWD=X').fast_info.last_price
+        if price is None or price == 0:
+            return {"status": "error", "message": "無法取得匯率"}
+        now = datetime.now().strftime("%H:%M")
+        return {"status": "success", "data": {"rate": round(float(price), 4), "updated_at": now, "source": "Yahoo Finance"}}
+    except Exception as e:
+        return {"status": "error", "message": str(e)}
+
+
+@eel.expose
+def get_stock_price(symbol):
+    """查詢任意美股即時股價"""
+    try:
+        import yfinance as yf
+        from datetime import datetime
+        symbol = symbol.strip().upper()
+        if not symbol:
+            return {"status": "error", "message": "請輸入股票代號"}
+        price = yf.Ticker(symbol).fast_info.last_price
+        if price is None or price == 0:
+            return {"status": "error", "message": f"找不到股票代號：{symbol}"}
+        now = datetime.now().strftime("%H:%M")
+        return {"status": "success", "data": {"symbol": symbol, "price": round(float(price), 4), "updated_at": now, "source": "Yahoo Finance"}}
+    except Exception as e:
+        return {"status": "error", "message": str(e)}
+
+
 # ==================== 啟動 ====================
 
 if __name__ == '__main__':

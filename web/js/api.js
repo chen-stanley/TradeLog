@@ -27,4 +27,7 @@ const API = {
     getStockProfit: () => eel.get_stock_profit()(),//個股盈虧
 
     getLivePrices: () => eel.get_live_prices()(),//即時股價
+
+    getExchangeRate: () => eel.get_exchange_rate()(),//匯率換算
+    getStockPrice: (symbol) => eel.get_stock_price(symbol)(),//查詢任意美股股價
 };
