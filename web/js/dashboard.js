@@ -296,10 +296,10 @@ async function saveRecord() {
             if (viewMarket !== inputMarket) setViewMarket(inputMarket);
             else await refreshData();
         } else {
-            alert("儲存失敗: " + res.message);
+            showToast(`儲存失敗：${res.message || '未知錯誤'}`, 'error');
         }
     } catch (e) {
-        alert("請檢查欄位格式是否正確！");
+        showToast('請檢查欄位格式是否正確！', 'error');
     }
 }
 
@@ -330,10 +330,7 @@ function editRow(id) {
         document.getElementById('f_c_remark').value = row.remark || '';
     }
 
-    const btn = document.getElementById('btn-save');
-    btn.innerHTML = `<iconify-icon icon="solar:pen-bold" class="text-xl"></iconify-icon> 更新紀錄`;
-    btn.classList.replace('bg-primary', 'bg-purple-500');
-    btn.classList.replace('hover:bg-cyan-400', 'hover:bg-purple-400');
+    setSaveButtonState(true);
     document.getElementById('btn-cancel-edit').classList.remove('hidden');
     document.getElementById('sidebar').scrollTo({ top: 0, behavior: 'smooth' });
 }
@@ -341,11 +338,21 @@ function editRow(id) {
 function cancelEdit() {
     editingId = null;
     renderForm();
-    const btn = document.getElementById('btn-save');
-    btn.innerHTML = `<iconify-icon icon="solar:diskette-bold" class="text-xl"></iconify-icon> 儲存紀錄`;
-    btn.classList.replace('bg-purple-500', 'bg-primary');
-    btn.classList.replace('hover:bg-purple-400', 'hover:bg-cyan-400');
+    setSaveButtonState(false);
     document.getElementById('btn-cancel-edit').classList.add('hidden');
+}
+
+function setSaveButtonState(isEditing) {
+    const btn = document.getElementById('btn-save');
+    const base = 'w-full mt-6 font-bold py-3.5 rounded-xl transition transform hover:scale-[1.02] active:scale-[0.98] shadow-lg flex justify-center items-center gap-2 text-base text-white dark:text-bgDark';
+    if (isEditing) {
+        btn.className = `${base} bg-purple-500 hover:bg-purple-400`;
+        btn.innerHTML = `<iconify-icon icon="solar:pen-bold" class="text-xl"></iconify-icon> 更新紀錄`;
+    } else {
+        const color = inputMarket === 'Crypto' ? 'bg-crypto hover:bg-teal-400' : 'bg-primary hover:bg-cyan-400';
+        btn.className = `${base} ${color}`;
+        btn.innerHTML = `<iconify-icon icon="solar:diskette-bold" class="text-xl"></iconify-icon> 儲存紀錄`;
+    }
 }
 
 // ==================== 刪除 ====================
@@ -353,18 +360,26 @@ function cancelEdit() {
 async function deleteRows(ids) {
     if (!confirm("確定要刪除嗎？")) return;
     const tableMode = (viewMarket === '台股' || viewMarket === '美股') ? 'Stock' : 'Crypto';
-    await API.deleteRecords(tableMode, ids);
-    refreshData();
+    const res = await API.deleteRecords(tableMode, ids);
+    if (res.status === 'success') {
+        await refreshData();
+    } else {
+        showToast(`刪除失敗：${res.message || '未知錯誤'}`, 'error');
+    }
 }
 
 async function deleteSelected() {
     if (selectedRows.size === 0) return;
     if (confirm(`確定要刪除這 ${selectedRows.size} 筆紀錄嗎？`)) {
         const tableMode = (viewMarket === '台股' || viewMarket === '美股') ? 'Stock' : 'Crypto';
-        await API.deleteRecords(tableMode, Array.from(selectedRows));
-        selectedRows.clear();
-        updateBatchDeleteButton();
-        refreshData();
+        const res = await API.deleteRecords(tableMode, Array.from(selectedRows));
+        if (res.status === 'success') {
+            selectedRows.clear();
+            updateBatchDeleteButton();
+            await refreshData();
+        } else {
+            showToast(`刪除失敗：${res.message || '未知錯誤'}`, 'error');
+        }
     }
 }
 
@@ -416,31 +431,31 @@ function renderTable() {
     body.innerHTML = '';
 
     let displayData = allRecords.filter(r => r.action === tableTab);
-if (viewMarket === '台股' || viewMarket === '美股')
-    displayData = displayData.filter(r => r.market === viewMarket);
+    if (viewMarket === '台股' || viewMarket === '美股')
+        displayData = displayData.filter(r => r.market === viewMarket);
 
-// 搜尋篩選
-const searchVal = (document.getElementById('search-input')?.value || '').toLowerCase().trim();
-if (searchVal) {
-    displayData = displayData.filter(r =>
-        (r.symbol || '').toLowerCase().includes(searchVal) ||
-        (r.name   || '').toLowerCase().includes(searchVal) ||
-        (r.remark || '').toLowerCase().includes(searchVal)
-    );
-    document.getElementById('btn-clear-search').classList.toggle('hidden', !searchVal);
-}
+    // 搜尋篩選
+    const searchVal = (document.getElementById('search-input')?.value || '').toLowerCase().trim();
+    if (searchVal) {
+        displayData = displayData.filter(r =>
+            (r.symbol || '').toLowerCase().includes(searchVal) ||
+            (r.name   || '').toLowerCase().includes(searchVal) ||
+            (r.remark || '').toLowerCase().includes(searchVal)
+        );
+        document.getElementById('btn-clear-search').classList.toggle('hidden', !searchVal);
+    }
 
-// 日期範圍篩選
-const dateStart = document.getElementById('filter-date-start')?.value || '';
-const dateEnd   = document.getElementById('filter-date-end')?.value   || '';
-if (dateStart) {
-    displayData = displayData.filter(r => (r.date || r.dt || '') >= dateStart);
-    document.getElementById('btn-clear-date').classList.remove('hidden');
-}
-if (dateEnd) {
-    displayData = displayData.filter(r => (r.date || r.dt || '') <= dateEnd);
-    document.getElementById('btn-clear-date').classList.remove('hidden');
-}
+    // 日期範圍篩選
+    const dateStart = document.getElementById('filter-date-start')?.value || '';
+    const dateEnd   = document.getElementById('filter-date-end')?.value   || '';
+    if (dateStart) {
+        displayData = displayData.filter(r => (r.date || r.dt || '') >= dateStart);
+        document.getElementById('btn-clear-date').classList.remove('hidden');
+    }
+    if (dateEnd) {
+        displayData = displayData.filter(r => (r.date || r.dt || '') <= dateEnd);
+        document.getElementById('btn-clear-date').classList.remove('hidden');
+    }
 
     displayData.sort((a, b) => {
         let valA = a[sortCol] || '';
@@ -469,7 +484,7 @@ if (dateEnd) {
             ${getTh('數量', 'qty')} ${getTh(`單價(${currency})`, viewMarket === '台股' ? 'price_twd' : 'price_usd')}
             ${getTh(`總成本(${currency})`, 'total_cost')}
             ${getTh('實際扣款', 'actual_twd')} ${getTh('手續費', 'fee')}
-            ${getTh('盈虧', 'profit')}
+            ${getTh(`盈虧(${currency})`, 'profit')}
             <th class="px-3 py-3 text-center whitespace-nowrap">備註</th>
             <th class="px-3 py-3 text-center whitespace-nowrap">操作</th>
         </tr>`;
@@ -480,6 +495,15 @@ if (dateEnd) {
             const pColor = row.profit > 0 ? 'text-success' : (row.profit < 0 ? 'text-danger' : 'text-gray-500 dark:text-gray-400');
             const isChecked = selectedRows.has(row.id) ? 'checked' : '';
             const symbolColor = viewMarket === '台股' ? 'color: #26C0DB' : 'color: #A78BFA';
+            let profitDisplay;
+            if (row.action === '賣出') {
+                const costBasis = row.total_cost - row.profit;
+                const pct = costBasis > 0 ? row.profit / costBasis * 100 : 0;
+                const pctSign = pct > 0 ? '+' : '';
+                profitDisplay = `<span class="${pColor}">${row.profit > 0 ? '+' : ''}${formatNum(row.profit)} (${pctSign}${pct.toFixed(2)}%)</span>`;
+            } else {
+                profitDisplay = `<span class="text-gray-400">-</span>`;
+            }
             rowsHtml += `
                 <tr class="border-b border-gray-100 dark:border-gray-700/50 hover:bg-inputBgLight/60 dark:hover:bg-inputBgDark/60 transition-colors group">
                     <td class="px-4 py-3 text-center"><input type="checkbox" value="${row.id}" onchange="toggleRowSelection(this)" ${isChecked}></td>
@@ -491,8 +515,8 @@ if (dateEnd) {
                     <td class="${tdNum} font-bold text-purple-500 dark:text-purple-400">${formatNum(row.total_cost)}</td>
                     <td class="${tdNum}">${row.actual_twd}</td>
                     <td class="${tdNum}">${row.fee}</td>
-                    <td class="${tdNum} font-bold ${pColor}">${row.profit}</td>
-                    <td class="${tdText} text-xs text-gray-500 truncate max-w-[120px]" title="${row.remark || ''}">${row.remark || '-'}</td>
+                    <td class="${tdNum} font-bold ${pColor}">${profitDisplay}</td>
+                    <td class="${tdText} text-xs text-gray-500 truncate max-w-[120px]" title="${escapeHtml(row.remark)}">${escapeHtml(row.remark) || '-'}</td>
                     <td class="px-3 py-3 text-center flex gap-3 justify-center whitespace-nowrap opacity-70 group-hover:opacity-100 transition-opacity">
                         <button onclick="editRow(${row.id})" class="text-primary hover:text-cyan-400 transition transform hover:scale-125"><iconify-icon icon="solar:pen-bold" class="text-lg"></iconify-icon></button>
                         <button onclick="deleteRows([${row.id}])" class="text-danger hover:text-red-400 transition transform hover:scale-125"><iconify-icon icon="solar:trash-bin-trash-bold" class="text-lg"></iconify-icon></button>
@@ -512,14 +536,23 @@ if (dateEnd) {
         pagedData.forEach(row => {
             const pColor = row.profit > 0 ? 'text-success' : (row.profit < 0 ? 'text-danger' : 'text-gray-500 dark:text-gray-400');
             const isChecked = selectedRows.has(row.id) ? 'checked' : '';
+            let profitDisplay;
+            if (row.action === '賣出') {
+                const costBasis = row.price - row.profit;
+                const pct = costBasis > 0 ? row.profit / costBasis * 100 : 0;
+                const pctSign = pct > 0 ? '+' : '';
+                profitDisplay = `<span class="${pColor}">${row.profit > 0 ? '+' : ''}${formatNum(row.profit)} (${pctSign}${pct.toFixed(2)}%)</span>`;
+            } else {
+                profitDisplay = `<span class="text-gray-400">-</span>`;
+            }
             rowsHtml += `
                 <tr class="border-b border-gray-100 dark:border-gray-700/50 hover:bg-inputBgLight/60 dark:hover:bg-inputBgDark/60 transition-colors group">
                     <td class="px-4 py-3 text-center"><input type="checkbox" value="${row.id}" onchange="toggleRowSelection(this)" ${isChecked}></td>
                     <td class="${tdText}">${row.dt}</td>
                     <td class="${tdText} font-bold text-crypto tracking-wide">${row.symbol}</td>
                     <td class="${tdNum}">${row.price}</td>
-                    <td class="${tdNum} font-bold ${pColor}">${row.profit}</td>
-                    <td class="${tdText} text-xs text-gray-500 truncate max-w-[150px]" title="${row.remark || ''}">${row.remark || '-'}</td>
+                    <td class="${tdNum} font-bold ${pColor}">${profitDisplay}</td>
+                    <td class="${tdText} text-xs text-gray-500 truncate max-w-[150px]" title="${escapeHtml(row.remark)}">${escapeHtml(row.remark) || '-'}</td>
                     <td class="px-3 py-3 text-center flex gap-3 justify-center whitespace-nowrap opacity-70 group-hover:opacity-100 transition-opacity">
                         <button onclick="editRow(${row.id})" class="text-crypto hover:text-teal-400 transition transform hover:scale-125"><iconify-icon icon="solar:pen-bold" class="text-lg"></iconify-icon></button>
                         <button onclick="deleteRows([${row.id}])" class="text-danger hover:text-red-400 transition transform hover:scale-125"><iconify-icon icon="solar:trash-bin-trash-bold" class="text-lg"></iconify-icon></button>

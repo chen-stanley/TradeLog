@@ -4,6 +4,15 @@ import sqlite3
 DB_PATH = "tradelog.db"
 eel.init('web')
 
+# 允許寫入的欄位白名單，防止前端傳入非預期欄位名稱
+_STOCK_FIELDS  = {'date', 'market', 'symbol', 'name', 'action', 'qty',
+                  'price_twd', 'price_usd', 'actual_twd', 'fee', 'profit', 'remark'}
+_CRYPTO_FIELDS = {'dt', 'symbol', 'action', 'price', 'profit', 'remark'}
+
+def _filter_fields(data: dict, mode: str) -> dict:
+    allowed = _STOCK_FIELDS if mode == 'Stock' else _CRYPTO_FIELDS
+    return {k: v for k, v in data.items() if k in allowed}
+
 # ==================== 資料庫初始化 ====================
 
 def get_conn():
@@ -13,7 +22,7 @@ def get_conn():
     return conn
 
 def init_db():
-    """首次啟動時建立資料表（若已存在則跳過）"""
+    """首次啟動時建立資料表（若已存在則跳過），並執行 schema 版本升級"""
     conn = get_conn()
     c = conn.cursor()
     c.execute('''
@@ -45,15 +54,29 @@ def init_db():
         )
     ''')
     conn.commit()
+    _migrate_db(conn)
     conn.close()
+
+def _migrate_db(conn):
+    """依版本號依序執行 schema 升級，未來新增欄位在此新增 migration"""
+    c = conn.cursor()
+    c.execute("PRAGMA user_version")
+    version = c.fetchone()[0]
+
+    # 範例（未來需要新增欄位時在此擴充）：
+    # if version < 1:
+    #     c.execute("ALTER TABLE records ADD COLUMN tax REAL DEFAULT 0")
+    #     c.execute("PRAGMA user_version = 1")
+
+    conn.commit()
 
 # ==================== 核心對帳邏輯 ====================
 
 def calculate_stock_profit(data, exclude_id=None):
-    """【核心對帳系統】根據移動平均法 (Moving Average) 計算成本與賣出盈虧"""
-    # 買入不計算已實現盈虧，直接設定為 0
+    """【庫存驗證】賣出時檢查庫存是否足夠（以移動平均法重播歷史推算）。
+    盈虧實際值由 recalculate_symbol_profits 統一重算覆蓋，此函式不需設定 profit。"""
+    # 買入不需驗證庫存
     if data.get('action') != '賣出':
-        data['profit'] = 0.0
         return data
 
     symbol = data['symbol']
@@ -103,14 +126,11 @@ def calculate_stock_profit(data, exclude_id=None):
     if round(new_qty, 4) > round(current_holdings, 4):
         raise ValueError(f"庫存不足！目前 {symbol} 剩餘庫存僅 {round(current_holdings, 2)} 股")
 
-    # 本次賣出盈虧 = (賣出單價 - 當前 avg_cost) * 賣出數量 - 賣出手續費
-    calculated_profit = (new_price - avg_cost) * new_qty
-    data['profit'] = round(calculated_profit, 2)
-
+    # 盈虧由 recalculate_symbol_profits 統一計算，此處不重複設定
     return data
 
 def recalculate_symbol_profits(symbol, conn):
-    """修改或刪除紀錄後，重新對帳該股票所有賣出的盈虧"""
+    """修改或刪除紀錄後，重新對帳該股票所有賣出的盈虧。commit 由呼叫端負責。"""
     c = conn.cursor()
     c.execute(
         "SELECT * FROM records WHERE symbol = ? ORDER BY date ASC, id ASC",
@@ -139,8 +159,6 @@ def recalculate_symbol_profits(symbol, conn):
             if current_holdings < 0:
                 current_holdings = 0.0
             total_cost_basis = current_holdings * avg_cost
-
-    conn.commit()
 
 
 # ==================== Eel 暴露給前端的 API ====================
@@ -452,7 +470,7 @@ def get_dashboard_stats():
         conn = get_conn()
         c = conn.cursor()
 
-        c.execute("SELECT market, profit FROM records")
+        c.execute("SELECT market, profit FROM records WHERE action = '賣出'")
         stock_rows = c.fetchall()
 
         c.execute("SELECT profit FROM crypto_records")
@@ -495,25 +513,33 @@ def add_record(mode, data):
     try:
         table = "records" if mode == 'Stock' else "crypto_records"
 
-        # 【觸發自動對帳】
+        data = _filter_fields(data, mode)
+
+        # 【觸發自動對帳】（含庫存不足驗證）
         if mode == 'Stock':
             data = calculate_stock_profit(data)
 
         conn = get_conn()
-        c = conn.cursor()
+        try:
+            c = conn.cursor()
 
-        columns = ', '.join(data.keys())
-        placeholders = ', '.join(['?' for _ in data])
-        values = list(data.values())
+            columns = ', '.join(data.keys())
+            placeholders = ', '.join(['?' for _ in data])
+            values = list(data.values())
 
-        c.execute(f"INSERT INTO {table} ({columns}) VALUES ({placeholders})", values)
-        conn.commit()
+            c.execute(f"INSERT INTO {table} ({columns}) VALUES ({placeholders})", values)
 
-        # 新增後重新對帳，確保補登舊日期的買入時後續賣出盈虧同步更新
-        if mode == 'Stock':
-            recalculate_symbol_profits(data['symbol'], conn)
+            # 新增後重新對帳，確保補登舊日期的買入時後續賣出盈虧同步更新
+            if mode == 'Stock':
+                recalculate_symbol_profits(data['symbol'], conn)
 
-        conn.close()
+            conn.commit()
+        except Exception:
+            conn.rollback()
+            raise
+        finally:
+            conn.close()
+
         return {"status": "success"}
     except ValueError as ve:
         return {"status": "error", "message": str(ve)}
@@ -526,24 +552,32 @@ def update_record(mode, record_id, data):
     try:
         table = "records" if mode == 'Stock' else "crypto_records"
 
-        # 【觸發自動對帳】
+        data = _filter_fields(data, mode)
+
+        # 【觸發自動對帳】（含庫存不足驗證）
         if mode == 'Stock':
             data = calculate_stock_profit(data, exclude_id=record_id)
 
         conn = get_conn()
-        c = conn.cursor()
+        try:
+            c = conn.cursor()
 
-        set_clause = ', '.join([f"{k} = ?" for k in data.keys()])
-        values = list(data.values()) + [record_id]
+            set_clause = ', '.join([f"{k} = ?" for k in data.keys()])
+            values = list(data.values()) + [record_id]
 
-        c.execute(f"UPDATE {table} SET {set_clause} WHERE id = ?", values)
-        conn.commit()
+            c.execute(f"UPDATE {table} SET {set_clause} WHERE id = ?", values)
 
-        # 修改後重新對帳該股票所有賣出盈虧（確保後續賣出同步更新）
-        if mode == 'Stock':
-            recalculate_symbol_profits(data['symbol'], conn)
+            # 修改後重新對帳該股票所有賣出盈虧（確保後續賣出同步更新）
+            if mode == 'Stock':
+                recalculate_symbol_profits(data['symbol'], conn)
 
-        conn.close()
+            conn.commit()
+        except Exception:
+            conn.rollback()
+            raise
+        finally:
+            conn.close()
+
         return {"status": "success"}
     except ValueError as ve:
         return {"status": "error", "message": str(ve)}
@@ -556,23 +590,29 @@ def delete_records(mode, record_ids):
     try:
         table = "records" if mode == 'Stock' else "crypto_records"
         conn = get_conn()
-        c = conn.cursor()
-        placeholders = ', '.join(['?' for _ in record_ids])
+        try:
+            c = conn.cursor()
+            placeholders = ', '.join(['?' for _ in record_ids])
 
-        # 刪除前先記錄受影響的股票代碼（Stock 模式才需要重算）
-        affected_symbols = set()
-        if mode == 'Stock':
-            c.execute(f"SELECT DISTINCT symbol FROM {table} WHERE id IN ({placeholders})", record_ids)
-            affected_symbols = {row['symbol'] for row in c.fetchall()}
+            # 刪除前先記錄受影響的股票代碼（Stock 模式才需要重算）
+            affected_symbols = set()
+            if mode == 'Stock':
+                c.execute(f"SELECT DISTINCT symbol FROM {table} WHERE id IN ({placeholders})", record_ids)
+                affected_symbols = {row['symbol'] for row in c.fetchall()}
 
-        c.execute(f"DELETE FROM {table} WHERE id IN ({placeholders})", record_ids)
-        conn.commit()
+            c.execute(f"DELETE FROM {table} WHERE id IN ({placeholders})", record_ids)
 
-        # 刪除後重新對帳受影響的股票
-        for symbol in affected_symbols:
-            recalculate_symbol_profits(symbol, conn)
+            # 刪除後重新對帳受影響的股票
+            for symbol in affected_symbols:
+                recalculate_symbol_profits(symbol, conn)
 
-        conn.close()
+            conn.commit()
+        except Exception:
+            conn.rollback()
+            raise
+        finally:
+            conn.close()
+
         return {"status": "success"}
     except Exception as e:
         return {"status": "error", "message": str(e)}
@@ -617,7 +657,7 @@ def get_live_prices():
         usdtwd = None
 
         # 所有請求同時發出，總耗時 ≈ 單次最慢的那一支
-        with ThreadPoolExecutor(max_workers=len(fetch_list)) as executor:
+        with ThreadPoolExecutor(max_workers=min(len(fetch_list), 10)) as executor:
             for user_sym, price, market in executor.map(fetch_one, fetch_list):
                 if user_sym == '__USDTWD__':
                     usdtwd = price

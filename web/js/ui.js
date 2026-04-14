@@ -10,10 +10,10 @@ function applyTheme() {
     const icon = document.getElementById('theme-icon');
     if (isDarkMode) {
         html.classList.add('dark');
-        document.getElementById('flatpickr-theme').href = "https://npmcdn.com/flatpickr/dist/themes/dark.css";
+        document.getElementById('flatpickr-theme').href = "lib/flatpickr-dark.css";
     } else {
         html.classList.remove('dark');
-        document.getElementById('flatpickr-theme').href = "https://npmcdn.com/flatpickr/dist/themes/light.css";
+        document.getElementById('flatpickr-theme').href = "lib/flatpickr-light.css";
     }
     if (icon) icon.setAttribute('icon', isDarkMode ? 'solar:moon-stars-bold-duotone' : 'solar:sun-bold-duotone');
 }
@@ -148,6 +148,17 @@ function flashSuccess() {
         { backgroundColor: "#0ECB81" },
         { backgroundColor: isDarkMode ? "#1E2329" : "#F3F4F6", duration: 0.8, ease: "power2.out", clearProps: "backgroundColor" }
     );
+}
+
+// ==================== HTML Escape ====================
+
+function escapeHtml(str) {
+    if (!str) return '';
+    return String(str)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;');
 }
 
 // ==================== 數字格式化 ====================

@@ -83,7 +83,7 @@ function renderStockProfitList() {
 
     if (stockProfitData.length === 0) {
         container.innerHTML = `
-    <tr><td colspan="7" class="py-20 text-center text-gray-400">
+    <tr><td colspan="8" class="py-20 text-center text-gray-400">
         <div class="flex flex-col items-center justify-center gap-3">
             <iconify-icon icon="solar:chart-bold-duotone" class="text-5xl"></iconify-icon>
             <span class="text-sm font-medium">尚無交易紀錄</span>
@@ -103,10 +103,18 @@ function renderStockProfitList() {
     sorted.forEach(s => {
         const isExpanded  = expandedSymbols.has(s.symbol);
         const pColor      = s.total_profit > 0 ? 'text-success' : (s.total_profit < 0 ? 'text-danger' : 'text-gray-400');
-        const profitStr = s.total_profit > 0
-            ? `+${formatNum(s.total_profit)}`
-            : formatNum(s.total_profit);
         const currency    = s.market === '台股' ? 'TWD' : (s.market === '美股' ? 'USD' : 'USDT');
+        const totalCostBasis = s.records
+            .filter(r => r.action === '賣出')
+            .reduce((sum, r) => {
+                const p = parseFloat(r.price_twd || r.price_usd || r.price || 0);
+                const q = parseFloat(r.qty || 1);
+                const pft = parseFloat(r.profit || 0);
+                return sum + (s.market === 'Crypto' ? (p - pft) : (p * q - pft));
+            }, 0);
+        const totalPct = totalCostBasis > 0 ? s.total_profit / totalCostBasis * 100 : null;
+        const totalPctStr = totalPct !== null ? `${totalPct > 0 ? '+' : ''}${totalPct.toFixed(2)}%` : '-';
+        const profitStr = `${s.total_profit > 0 ? '+' : ''}${formatNum(s.total_profit)}`;
         const marketColor = s.market === '台股' ? 'text-primary bg-primary/10' : (s.market === '美股' ? 'text-purple-400 bg-purple-400/10' : 'text-crypto bg-crypto/10');
 
         // 交易明細
@@ -120,9 +128,19 @@ function renderStockProfitList() {
                 const price    = r.price_twd || r.price_usd || r.price || 0;
                 const profit   = parseFloat(r.profit || 0);
                 const profitColor = profit > 0 ? 'text-success' : (profit < 0 ? 'text-danger' : 'text-gray-400');
-                const profitDisplay = r.action === '賣出'
-                    ? `<span class="font-bold ${profitColor}">${profit > 0 ? '+' : ''}${formatNum(profit)}</span>`
-                    : `<span class="text-gray-400">-</span>`;
+                let profitDisplay;
+                let pctDisplay;
+                if (r.action === '賣出') {
+                    const qty = parseFloat(r.qty || 1);
+                    const costBasis = s.market === 'Crypto' ? (price - profit) : (price * qty - profit);
+                    const pct = costBasis > 0 ? profit / costBasis * 100 : 0;
+                    const pctSign = pct > 0 ? '+' : '';
+                    profitDisplay = `<span class="font-bold ${profitColor}">${profit > 0 ? '+' : ''}${formatNum(profit)}</span>`;
+                    pctDisplay = `<span class="font-bold ${profitColor}">${pctSign}${pct.toFixed(2)}%</span>`;
+                } else {
+                    profitDisplay = `<span class="text-gray-400">-</span>`;
+                    pctDisplay = `<span class="text-gray-400">-</span>`;
+                }
 
                 return `
                     <tr class="border-b border-gray-100 dark:border-gray-700/30 hover:bg-inputBgLight/40 dark:hover:bg-inputBgDark/40 transition-colors">
@@ -135,13 +153,14 @@ function renderStockProfitList() {
                         <td class="px-4 py-2.5 text-center text-xs table-num">${s.market === 'Crypto' ? '<span class="text-gray-400">-</span>' : `${parseFloat(r.qty || 0).toLocaleString('en-US', { maximumFractionDigits: 4 })} 股`}</td>
                         <td class="px-4 py-2.5 text-center text-xs table-num">${s.market === 'Crypto' ? formatNum(r.price) : `${formatNum(price)} ${currency}`}</td>
                         <td class="px-4 py-2.5 text-center text-xs table-num">${profitDisplay}</td>
-                        <td class="px-4 py-2.5 text-center text-xs text-gray-400 truncate max-w-[120px]">${r.remark || '-'}</td>
+                        <td class="px-4 py-2.5 text-center text-xs table-num">${pctDisplay}</td>
+                        <td class="px-4 py-2.5 text-center text-xs text-gray-400 truncate max-w-[120px]">${escapeHtml(r.remark) || '-'}</td>
                     </tr>`;
             }).join('');
 
             detailHtml = `
                 <tr class="bg-gray-50/50 dark:bg-bgDark/50">
-                    <td colspan="7" class="px-4 py-0">
+                    <td colspan="8" class="px-4 py-0">
                         <div class="overflow-hidden transition-all">
                             <table class="w-full text-center border-collapse">
                                 <thead>
@@ -151,6 +170,7 @@ function renderStockProfitList() {
                                         <th class="px-4 py-2 text-center">數量</th>
                                         <th class="px-4 py-2 text-center">單價</th>
                                         <th class="px-4 py-2 text-center">盈虧</th>
+                                        <th class="px-4 py-2 text-center">報酬率</th>
                                         <th class="px-4 py-2 text-center">備註</th>
                                     </tr>
                                 </thead>
@@ -172,6 +192,7 @@ function renderStockProfitList() {
                 <td class="px-4 py-3.5 text-center text-xs text-gray-500">${formatDateStr(s.last_date)}</td>
                 <td class="px-4 py-3.5 text-center table-num text-gray-500 text-sm">${s.buy_count} 買 / ${s.sell_count} 賣</td>
                 <td class="px-4 py-3.5 text-center font-bold table-num ${pColor}">${profitStr} ${s.sell_count > 0 ? currency : ''}</td>
+                <td class="px-4 py-3.5 text-center font-bold table-num ${pColor}">${totalPctStr}</td>
                 <td class="px-4 py-3.5 text-center text-gray-400 group-hover:text-primary transition-colors">
                     <iconify-icon icon="${isExpanded ? 'solar:alt-arrow-up-bold' : 'solar:alt-arrow-down-bold'}" class="text-lg"></iconify-icon>
                 </td>
