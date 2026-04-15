@@ -644,14 +644,18 @@ def get_live_prices():
 
         def fetch_one(args):
             user_sym, yf_sym, market = args
+            price = None
             try:
                 price = yf.Ticker(yf_sym).fast_info.last_price
-                # 台股上市(.TW)抓不到時，改試上櫃/興櫃(.TWO)
-                if (price is None or price == 0) and market == '台股':
-                    price = yf.Ticker(user_sym + '.TWO').fast_info.last_price
-                return user_sym, round(float(price), 4) if price else None, market
             except Exception:
-                return user_sym, None, market
+                pass
+            # 台股上市(.TW)抓不到時（None、0 或例外），改試上櫃/興櫃(.TWO)
+            if (price is None or price == 0) and market == '台股':
+                try:
+                    price = yf.Ticker(user_sym + '.TWO').fast_info.last_price
+                except Exception:
+                    pass
+            return user_sym, round(float(price), 4) if price else None, market
 
         prices = {}
         usdtwd = None
