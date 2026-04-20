@@ -108,6 +108,12 @@ python main.py
 **報酬試算**
 ![報酬試算](assets/return_calculator.png)
 
+**高股息專區 — 儀表板**
+![高股息專區 儀表板](assets/dividend_dashboard.png)
+
+**高股息專區 — 個股報告書**
+![高股息專區 個股報告書](assets/dividend_report.png)
+
 
 ---
 
