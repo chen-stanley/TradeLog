@@ -33,4 +33,14 @@ const API = {
 
     getCalendarData: (year, month) => eel.get_calendar_data(year, month)(),//日曆盈虧
     getCalendarYears: () => eel.get_calendar_years()(),//日曆年份選單
+
+    getDividendHoldings: () => eel.get_dividend_holdings()(),
+    addDividendHolding: (data) => eel.add_dividend_holding(data)(),
+    updateDividendHolding: (id, data) => eel.update_dividend_holding(id, data)(),
+    deleteDividendHolding: (id) => eel.delete_dividend_holding(id)(),
+    getDividendRecords: (symbol) => eel.get_dividend_records(symbol)(),
+    addDividendRecord: (data) => eel.add_dividend_record(data)(),
+    deleteDividendRecord: (id) => eel.delete_dividend_record(id)(),
+    getDividendLivePrices: () => eel.get_dividend_live_prices()(),
+    fetchDividendAmount: (symbol) => eel.fetch_dividend_amount(symbol)(),
 };

@@ -645,7 +645,7 @@ function onSearchInput() {
 // ==================== 導覽 ====================
 
 function navigateTo(page) {
-    const pages = ['dashboard', 'holdings', 'charts', 'stockprofit', 'calendar'];
+    const pages = ['dashboard', 'holdings', 'charts', 'stockprofit', 'calendar', 'dividend'];
     pages.forEach(p => {
         document.getElementById(`page-${p}`).classList.toggle('hidden', p !== page);
         const btn = document.getElementById(`nav-${p}`);
@@ -654,9 +654,9 @@ function navigateTo(page) {
         else { btn.classList.remove('active'); btn.querySelector('iconify-icon').style.color = ''; }
     });
 
-    // 日曆頁整頁顯示，隱藏左側輸入區
+    // 日曆頁與高股息頁整頁顯示，隱藏左側輸入區
     const sidebar = document.getElementById('sidebar');
-    if (page === 'calendar') {
+    if (page === 'calendar' || page === 'dividend') {
         gsap.to(sidebar, { width: 0, opacity: 0, padding: 0, marginRight: 0, duration: 0.25, ease: 'power2.inOut',
             onComplete: () => sidebar.classList.add('hidden') });
     } else {
@@ -668,6 +668,7 @@ function navigateTo(page) {
     if (page === 'charts')      initCharts();
     if (page === 'stockprofit') initStockProfit();
     if (page === 'calendar')    initCalendar();
+    if (page === 'dividend')    initDividend();
 }
 // ==================== 匯出 CSV ====================
 

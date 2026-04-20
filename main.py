@@ -53,6 +53,29 @@ def init_db():
             remark  TEXT
         )
     ''')
+    c.execute('''
+        CREATE TABLE IF NOT EXISTS dividend_holdings (
+            id          INTEGER PRIMARY KEY AUTOINCREMENT,
+            symbol      TEXT NOT NULL,
+            name        TEXT,
+            qty         REAL    DEFAULT 0,
+            avg_cost    REAL    DEFAULT 0,
+            freq        INTEGER DEFAULT 4,
+            created_at  TEXT
+        )
+    ''')
+    c.execute('''
+        CREATE TABLE IF NOT EXISTS dividend_records (
+            id              INTEGER PRIMARY KEY AUTOINCREMENT,
+            symbol          TEXT NOT NULL,
+            date            TEXT,
+            cash_per_share  REAL    DEFAULT 0,
+            qty             REAL    DEFAULT 0,
+            total           REAL    DEFAULT 0,
+            status          TEXT    DEFAULT '入帳',
+            remark          TEXT
+        )
+    ''')
     conn.commit()
     _migrate_db(conn)
     _backfill_usdtwd_rates(conn)
@@ -67,6 +90,35 @@ def _migrate_db(conn):
     if version < 1:
         c.execute("ALTER TABLE records ADD COLUMN usd_twd_rate REAL")
         c.execute("PRAGMA user_version = 1")
+
+    if version < 2:
+        c.execute('''
+            CREATE TABLE IF NOT EXISTS dividend_holdings (
+                id          INTEGER PRIMARY KEY AUTOINCREMENT,
+                symbol      TEXT NOT NULL,
+                name        TEXT,
+                qty         REAL    DEFAULT 0,
+                avg_cost    REAL    DEFAULT 0,
+                created_at  TEXT
+            )
+        ''')
+        c.execute('''
+            CREATE TABLE IF NOT EXISTS dividend_records (
+                id              INTEGER PRIMARY KEY AUTOINCREMENT,
+                symbol          TEXT NOT NULL,
+                date            TEXT,
+                cash_per_share  REAL    DEFAULT 0,
+                qty             REAL    DEFAULT 0,
+                total           REAL    DEFAULT 0,
+                status          TEXT    DEFAULT '入帳',
+                remark          TEXT
+            )
+        ''')
+        c.execute("PRAGMA user_version = 2")
+
+    if version < 3:
+        c.execute("ALTER TABLE dividend_holdings ADD COLUMN freq INTEGER DEFAULT 4")
+        c.execute("PRAGMA user_version = 3")
 
     conn.commit()
 
@@ -695,6 +747,175 @@ def delete_records(mode, record_ids):
             conn.close()
 
         return {"status": "success"}
+    except Exception as e:
+        return {"status": "error", "message": str(e)}
+
+
+# ==================== 高股息 API ====================
+
+@eel.expose
+def get_dividend_holdings():
+    try:
+        conn = get_conn()
+        c = conn.cursor()
+        c.execute("SELECT * FROM dividend_holdings ORDER BY id ASC")
+        rows = [dict(row) for row in c.fetchall()]
+        conn.close()
+        return {"status": "success", "data": rows}
+    except Exception as e:
+        return {"status": "error", "message": str(e)}
+
+
+@eel.expose
+def add_dividend_holding(data):
+    try:
+        from datetime import datetime
+        allowed = {'symbol', 'name', 'qty', 'avg_cost'}
+        data = {k: v for k, v in data.items() if k in allowed}
+        data['created_at'] = datetime.now().strftime('%Y-%m-%d %H:%M')
+        conn = get_conn()
+        c = conn.cursor()
+        columns = ', '.join(data.keys())
+        placeholders = ', '.join(['?' for _ in data])
+        c.execute(f"INSERT INTO dividend_holdings ({columns}) VALUES ({placeholders})", list(data.values()))
+        conn.commit()
+        conn.close()
+        return {"status": "success"}
+    except Exception as e:
+        return {"status": "error", "message": str(e)}
+
+
+@eel.expose
+def update_dividend_holding(holding_id, data):
+    try:
+        allowed = {'qty', 'avg_cost', 'name'}
+        data = {k: v for k, v in data.items() if k in allowed}
+        conn = get_conn()
+        c = conn.cursor()
+        set_clause = ', '.join([f"{k} = ?" for k in data.keys()])
+        c.execute(f"UPDATE dividend_holdings SET {set_clause} WHERE id = ?", list(data.values()) + [holding_id])
+        conn.commit()
+        conn.close()
+        return {"status": "success"}
+    except Exception as e:
+        return {"status": "error", "message": str(e)}
+
+
+@eel.expose
+def delete_dividend_holding(holding_id):
+    try:
+        conn = get_conn()
+        c = conn.cursor()
+        c.execute("DELETE FROM dividend_holdings WHERE id = ?", (holding_id,))
+        conn.commit()
+        conn.close()
+        return {"status": "success"}
+    except Exception as e:
+        return {"status": "error", "message": str(e)}
+
+
+@eel.expose
+def get_dividend_records(symbol):
+    try:
+        conn = get_conn()
+        c = conn.cursor()
+        if symbol:
+            c.execute("SELECT * FROM dividend_records WHERE symbol = ? ORDER BY date DESC, id DESC", (symbol,))
+        else:
+            c.execute("SELECT * FROM dividend_records ORDER BY date DESC, id DESC")
+        rows = [dict(row) for row in c.fetchall()]
+        conn.close()
+        return {"status": "success", "data": rows}
+    except Exception as e:
+        return {"status": "error", "message": str(e)}
+
+
+@eel.expose
+def add_dividend_record(data):
+    try:
+        allowed = {'symbol', 'date', 'cash_per_share', 'qty', 'total', 'status', 'remark'}
+        data = {k: v for k, v in data.items() if k in allowed}
+        # Recalculate total on backend to avoid frontend drift
+        try:
+            data['total'] = round(float(data.get('cash_per_share', 0)) * float(data.get('qty', 0)), 2)
+        except (TypeError, ValueError):
+            pass
+        conn = get_conn()
+        c = conn.cursor()
+        columns = ', '.join(data.keys())
+        placeholders = ', '.join(['?' for _ in data])
+        c.execute(f"INSERT INTO dividend_records ({columns}) VALUES ({placeholders})", list(data.values()))
+        conn.commit()
+        conn.close()
+        return {"status": "success"}
+    except Exception as e:
+        return {"status": "error", "message": str(e)}
+
+
+@eel.expose
+def delete_dividend_record(record_id):
+    try:
+        conn = get_conn()
+        c = conn.cursor()
+        c.execute("DELETE FROM dividend_records WHERE id = ?", (record_id,))
+        conn.commit()
+        conn.close()
+        return {"status": "success"}
+    except Exception as e:
+        return {"status": "error", "message": str(e)}
+
+
+@eel.expose
+def get_dividend_live_prices():
+    try:
+        import yfinance as yf
+        from concurrent.futures import ThreadPoolExecutor
+
+        conn = get_conn()
+        c = conn.cursor()
+        c.execute("SELECT DISTINCT symbol FROM dividend_holdings")
+        symbols = [row['symbol'] for row in c.fetchall()]
+        conn.close()
+
+        if not symbols:
+            return {"status": "success", "data": {"prices": {}, "updated_at": None}}
+
+        def fetch_one(symbol):
+            price = None
+            try:
+                price = yf.Ticker(symbol + '.TW').fast_info.last_price
+            except Exception:
+                pass
+            if price is None or price == 0:
+                try:
+                    price = yf.Ticker(symbol + '.TWO').fast_info.last_price
+                except Exception:
+                    pass
+            return symbol, round(float(price), 4) if price else None
+
+        prices = {}
+        with ThreadPoolExecutor(max_workers=min(len(symbols), 10)) as executor:
+            for sym, price in executor.map(fetch_one, symbols):
+                prices[sym] = price
+
+        from datetime import datetime
+        updated_at = datetime.now().strftime("%H:%M")
+        return {"status": "success", "data": {"prices": prices, "updated_at": updated_at}}
+    except Exception as e:
+        return {"status": "error", "message": str(e)}
+
+
+@eel.expose
+def fetch_dividend_amount(symbol):
+    try:
+        import yfinance as yf
+        symbol = symbol.strip().upper()
+        ticker = yf.Ticker(symbol + '.TW')
+        divs = ticker.dividends
+        if divs is None or len(divs) == 0:
+            return {"status": "error", "message": "查無配息資料"}
+        amount = round(float(divs.iloc[-1]), 4)
+        return {"status": "success", "data": {"amount": amount}}
     except Exception as e:
         return {"status": "error", "message": str(e)}
 

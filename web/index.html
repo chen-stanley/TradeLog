@@ -244,6 +244,12 @@
             <iconify-icon icon="solar:calendar-bold-duotone" class="text-2xl"></iconify-icon>
         </button>
 
+        <button onclick="navigateTo('dividend')" id="nav-dividend"
+            class="nav-item w-11 h-11 rounded-xl flex items-center justify-center transition-all text-gray-400 dark:text-gray-500 hover:bg-inputBgLight dark:hover:bg-inputBgDark hover:text-gray-700 dark:hover:text-white"
+            data-tooltip="高股息專區">
+            <iconify-icon icon="solar:money-bag-bold-duotone" class="text-2xl"></iconify-icon>
+        </button>
+
         <!-- 分隔線 -->
         <div class="w-8 border-t border-gray-300 dark:border-gray-600 my-1"></div>
 
@@ -781,6 +787,11 @@
     </div>
 </div>
 
+        <!-- ── 高股息專區頁 ── -->
+        <div id="page-dividend" class="hidden h-full flex flex-col gap-4 overflow-y-auto custom-scrollbar pr-1">
+            <!-- 動態內容由 dividend.js 產生 -->
+        </div>
+
         <!-- ── 日曆盈虧頁 ── -->
         <div id="page-calendar" class="hidden h-full flex flex-col gap-3">
 
@@ -875,6 +886,7 @@
     <script src="/js/stockprofit.js"></script>
     <script src="/js/calculator.js"></script>
     <script src="/js/calendar.js"></script>
+    <script src="/js/dividend.js"></script>
     <script>
         window.onload = () => initDashboard();
     </script>
