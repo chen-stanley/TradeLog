@@ -9,6 +9,8 @@ _STOCK_FIELDS  = {'date', 'market', 'symbol', 'name', 'action', 'qty',
                   'price_twd', 'price_usd', 'actual_twd', 'fee', 'profit', 'remark'}
 _CRYPTO_FIELDS = {'dt', 'symbol', 'action', 'price', 'profit', 'remark'}
 
+_cached_usd_twd_rate = 31.0  # get_live_prices() 更新後供 get_chart_data() 使用
+
 def _filter_fields(data: dict, mode: str) -> dict:
     allowed = _STOCK_FIELDS if mode == 'Stock' else _CRYPTO_FIELDS
     return {k: v for k, v in data.items() if k in allowed}
@@ -437,7 +439,9 @@ def get_chart_data():
         crypto_records = [dict(row) for row in c.fetchall()]
         conn.close()
 
-        # ── 1. 每月盈虧（台股+美股+Crypto 分開）──
+        rate = _cached_usd_twd_rate
+
+        # ── 1. 每月盈虧（台股+美股+Crypto 分開，美股換算為 TWD）──
         monthly = {}
         for r in stock_records:
             if r['action'] != '賣出': continue
@@ -447,28 +451,31 @@ def get_chart_data():
             if r['market'] == '台股':
                 monthly[ym]['twd'] += float(r.get('profit') or 0)
             else:
-                monthly[ym]['usd'] += float(r.get('profit') or 0)
+                monthly[ym]['usd'] += float(r.get('profit') or 0) * rate
 
         for r in crypto_records:
             if r['action'] != '賣出': continue
             ym = r['dt'][:7].replace('-', '')  # YYYYMM
             if ym not in monthly:
                 monthly[ym] = {'twd': 0.0, 'usd': 0.0, 'crypto': 0.0}
-            monthly[ym]['crypto'] += float(r.get('profit') or 0)
+            monthly[ym]['crypto'] += float(r.get('profit') or 0) * rate
 
         monthly_sorted = dict(sorted(monthly.items()))
 
-        # ── 2. 各標的盈虧排行（只算賣出的已實現盈虧）──
+        # ── 2. 各標的盈虧排行（只算賣出的已實現盈虧，美股換算為 TWD）──
         symbol_profit = {}
         for r in stock_records:
             if r['action'] != '賣出': continue
             key = f"{r['symbol']} ({r['market']})"
-            symbol_profit[key] = symbol_profit.get(key, 0.0) + float(r.get('profit') or 0)
+            profit = float(r.get('profit') or 0)
+            if r['market'] == '美股':
+                profit *= rate
+            symbol_profit[key] = symbol_profit.get(key, 0.0) + profit
 
         for r in crypto_records:
             if r['action'] != '賣出': continue
             key = f"{r['symbol']} (Crypto)"
-            symbol_profit[key] = symbol_profit.get(key, 0.0) + float(r.get('profit') or 0)
+            symbol_profit[key] = symbol_profit.get(key, 0.0) + float(r.get('profit') or 0) * rate
 
         symbol_sorted = dict(sorted(symbol_profit.items(), key=lambda x: x[1], reverse=True))
 
@@ -970,6 +977,9 @@ def get_live_prices():
             for user_sym, price, market in executor.map(fetch_one, fetch_list):
                 if user_sym == '__USDTWD__':
                     usdtwd = price
+                    if price:
+                        global _cached_usd_twd_rate
+                        _cached_usd_twd_rate = price
                 else:
                     prices[user_sym] = {"price": price, "market": market}
 

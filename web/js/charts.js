@@ -88,15 +88,15 @@ function renderStatCards(winRate, best, worst) {
     // 最佳標的
     const bestProfit = best.profit || 0;
     document.getElementById('c-best-symbol').innerText = best.symbol || '--';
-    document.getElementById('c-best-profit').innerText = bestProfit >= 0
-        ? `+${formatNum(bestProfit)}` : formatNum(bestProfit);
+    document.getElementById('c-best-profit').innerText = (bestProfit >= 0
+        ? `+${formatNum(bestProfit)}` : formatNum(bestProfit)) + ' TWD';
     document.getElementById('c-best-profit').className = `text-2xl font-extrabold table-num mt-1 ${bestProfit >= 0 ? 'text-success' : 'text-danger'}`;
 
     // 最差標的
     const worstProfit = worst.profit || 0;
     document.getElementById('c-worst-symbol').innerText = worst.symbol || '--';
-    document.getElementById('c-worst-profit').innerText = worstProfit >= 0
-        ? `+${formatNum(worstProfit)}` : formatNum(worstProfit);
+    document.getElementById('c-worst-profit').innerText = (worstProfit >= 0
+        ? `+${formatNum(worstProfit)}` : formatNum(worstProfit)) + ' TWD';
     document.getElementById('c-worst-profit').className = `text-2xl font-extrabold table-num mt-1 ${worstProfit >= 0 ? 'text-success' : 'text-danger'}`;
 }
 
@@ -182,14 +182,14 @@ function renderBarChart(monthly) {
                     borderSkipped: false,
                 },
                 {
-                    label: '美股 (USD)',
+                    label: '美股 (TWD換算)',
                     data: usdData,
                     backgroundColor: (ctx) => ctx.raw >= 0 ? 'rgba(167,139,250,0.8)' : 'rgba(255,107,107,0.6)',
                     borderRadius: 6,
                     borderSkipped: false,
                 },
                 {
-                    label: 'Crypto (USDT)',
+                    label: 'Crypto (TWD換算)',
                     data: cryData,
                     backgroundColor: (ctx) => ctx.raw >= 0 ? 'rgba(78,205,196,0.8)' : 'rgba(255,107,107,0.5)',
                     borderRadius: 6,
@@ -279,7 +279,7 @@ function renderRankChart(symbolProfit) {
                         label: (ctx) => {
                             const val = ctx.parsed.x;
                             const prefix = val >= 0 ? '+' : '';
-                            return ` 盈虧: ${prefix}${val.toLocaleString('en-US', {minimumFractionDigits: 2})}`;
+                            return ` 盈虧: ${prefix}${val.toLocaleString('en-US', {minimumFractionDigits: 2})} TWD`;
                         }
                     }
                 }
